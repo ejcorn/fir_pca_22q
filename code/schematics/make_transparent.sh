@@ -1,0 +1,6 @@
+#!/bin/bash
+set -euxo pipefail
+
+cd ~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/results/ScanIDSchaefer200Z1_22q_PreQC_XCP36pdespike_us_100reps/analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/ThreatNonthreatAllStimuliStratified/pncvs22qcoeff/
+
+convert FIRGroupThreatNonthreatAllStimuliStratified_CPCAComponentsBootstrappedThreshold.png -transparent white FIRGroupThreatNonthreatAllStimuliStratified_CPCAComponentsBootstrappedThresholdTransparent.png

@@ -1,0 +1,15 @@
+.libPaths(c("/usr/lib64/R/library","/gpfs/fs001/cbica/home/cornblae/R/x86_64-redhat-linux-gnu-library/3.6"))
+
+library(ggplot2)
+library(R.matlab)
+library(RColorBrewer)
+library(lm.beta)
+library(reshape2)
+library(viridis)
+library(gridExtra)
+library(gsubfn)
+#library(rstatix)
+library(cowplot)
+
+# packages <- list('R.matlab','RColorBrewer','plyr','reshape2','viridis','gridExtra')
+# lapply(packages,install.packages)

@@ -1,0 +1,9 @@
+clear; basedir = '/cbica/home/cornblae/ecornblath/fir_pca_22q/';
+name_root = 'CPCA_IDSchaefer200Z1xcp_36p_despike'; 
+%name_root = 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'; 
+cd(basedir); addpath(genpath('code'));
+
+
+basedir = '/cbica/home/cornblae/ecornblath/fir_pca_22q/';
+name_root = 'CPCA_IDSchaefer200Z1xcp_36p_despike'; 
+component_design = 'ThreatNonthreatAllStimuliStratified';
