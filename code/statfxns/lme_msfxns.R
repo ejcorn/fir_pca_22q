@@ -39,16 +39,25 @@ lme4.ms <- function(cfg,df){
 lme.compare <- function(mdl.gold,mdl.test,coef.sig){
   # INPUT:
   # mdl.gold, mdl.test: compare new model (mdl.test) to current gold std model (mdl.gold)
-  # using 3 criteria that all must be true. (c1) p < 0.05 for anova(m1,m2) AND (c2) AIC drops AND (c3) added coefficient is significant
+  # using 3 criteria that all must be true:
+  # (c1) p < 0.05 for anova(m1,m2) AND 
+  # (c2) AIC drops AND 
+  # (c3) added coefficient is significant
   # coef.sig: name of coefficient to test significance for
   #
   # OUTPUT:
   # cond: true/false is model better
   c1 <- sort(anova(mdl.gold,mdl.test)$`p-value`) < 0.05 # likelihood ratio p < 0.05
   c2 <- summary(mdl.gold)$AIC > summary(mdl.test)$AIC # AIC decreases
-  print(paste('checking p-val of',coef.sig))
+  # print('1. Anova')
+  # print(anova(mdl.gold,mdl.test))
+  # print('2. AIC: gold vs test')
+  # print(c(summary(mdl.gold)$AIC,summary(mdl.test)$AIC))
+  print(paste('3. checking p-val of',coef.sig))
   print(summary(mdl.test)$tTable[coef.sig,,drop=F])
   c3 <- summary(mdl.test)$tTable[coef.sig,'p-value'] < 0.05 # p-value of most recently added coefficient is < 0.05
+  # if the two models only differ by random effects, don't assess coefficient significance
+  if(identical(names(mdl.gold$coefficients$fixed),names(mdl.test$coefficients$fixed))){c3 <- TRUE}
   cond <- all(c(c1,c2,c3)) # all conditions must be true to advance
   return(cond)
 }

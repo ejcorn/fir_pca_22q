@@ -5,9 +5,12 @@ rm(list=ls())
 args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
+component_design <- args[3]
 
-name_root <- 'ScanIDSchaefer200Z1_22q_PreQC_XCP36pdespike_us_100reps'
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/'
+basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 

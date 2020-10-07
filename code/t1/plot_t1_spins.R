@@ -3,9 +3,12 @@ rm(list=ls())
 args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
+component_design <- args[3]
 
-name_root <- 'ScanIDSchaefer200Z1_22q_PreQC_XCP36pdespike_us_100reps'
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/'
+basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 
@@ -26,8 +29,13 @@ grp.colors <- getGroupColors()
 component_design <- 'ThreatNonthreatAllStimuliStratified'
 CPC <- readMat(paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',
                       component_design,'/pncvs22qcoeff/FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat'))
-PCs.oi <- c(1:6) # these are components with altered temporal profiles in 22q
-PC.maps <- CPC$nodeData[,PCs.oi]
+if(grepl('xcp_36p_despike',name_root)){
+  PCs.oi <- PCS.oi.idx <- 1:6
+} else if(grepl('xcp_6p_noFilter',name_root)){
+  PCs.oi.idx <- 2:6 # remove comp 0 which is global signal
+  PCs.oi <- 1:5 # for plot name
+}
+PC.maps <- CPC$nodeData[,PCs.oi.idx]
 
 # load
 savedir <- paste0(masterdir,'analyses/t1/pc_spin/',component_design,'/')
@@ -70,12 +78,12 @@ for(t1.metric in names(t1.maps)){results[[t1.metric]]$p.spin.fdr <- pval.list[[t
 p.list <- lapply(results, function(X) ggplot() + geom_boxplot(data=collapse.columns(X$d.null),aes(x=names,y=values),alpha=0.6,fill="#0B775E",outlier.stroke = 0,outlier.size = 0.5) +
          geom_point(aes(x=names(X$d.obs),y=X$d.obs),color="#E1BD6D",shape='diamond',size=2) +
            annotate(geom='text',x=names(X$d.obs),y=max(X$d.null),label=ifelse(X$p.spin.fdr<0.05,yes='*',no=''),size=4,color="#F2300F")+
-           annotate(geom='text',x=names(X$d.obs),y=max(X$d.null),vjust=1,label=ifelse(X$p.spin<0.05,yes='*',no=''),size=4,color="#35274A")+
+           #annotate(geom='text',x=names(X$d.obs),y=max(X$d.null),vjust=1,label=ifelse(X$p.spin<0.05,yes='*',no=''),size=4,color="#35274A")+
            theme_classic()+ggtitle(X$metric)+theme(plot.title = element_text(hjust=0.5))+
-           xlab('') + ylab(paste0(X$name,' (MAD)')) + theme(text=element_text(size=8),
+           xlab('') + ylab(paste0(X$name,' (MAV)')) + theme(text=element_text(size=8),
           axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)))
 p.all <- plot_grid(plotlist=p.list,nrow=1)
-ggsave(plot = p.all, filename = paste0(savedir,'PC_CTSA_MAD.pdf'),
-       width = 6,height = 5, units = "cm",useDingbats=F)
+ggsave(plot = p.all, filename = paste0(savedir,'PC_CTSA_MAV.pdf'),
+       width = 12,height = 5, units = "cm",useDingbats=F)
 
 

@@ -12,7 +12,8 @@ if ~exist('subject','var')
 end
 
 [N,k] = size(data);
-addpath(genpath('/Applications/freesurfer/matlab'));
+ADD_FS_MATLAB_PATH()
+
 [annot.Rv,annot.RL, annot.Rct] = read_annotation(sprintf('data/annot/%s/rh.Schaefer2018_%dParcels_7Networks_order.annot',subject,N));
 [annot.Lv,annot.LL, annot.Lct] = read_annotation(sprintf('data/annot/%s/lh.Schaefer2018_%dParcels_7Networks_order.annot',subject,N));
 

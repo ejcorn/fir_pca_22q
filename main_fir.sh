@@ -12,6 +12,7 @@ alias ENDCOMMENT="fi"
 # get rid of all of these variables
 ZDIM=1
 XCP='xcp_6p_noFilter'
+#XCP='xcp_36p_despike'
 ATLAS=Schaefer
 NPARC=200
 SCAN='ID'
@@ -37,9 +38,8 @@ cd $BASEDIR'jobs'		# change to directory containing all shell scripts
 ####################
 
 #qsub -N "PROCESSDEMO" -o ${LOGDIR} -e ${LOGDIR} -v BD=$BASEDIR,RP=$RPATH ProcessDemo.sh
-
-qsub -N "PROCESSIMAGINGDATA" -o ${LOGDIR} -e ${LOGDIR} -v ZDIM=$ZDIM,ATLAS='Schaefer',NPARC=200,SCAN=$SCAN,XCP=$XCP,LAB=$LAB,BD=$BASEDIR,MP=$MATPATH,RP=$RPATH -hold_jid "PROCESSDEMO" ProcessData22q.sh
 BEGINCOMMENT
+qsub -N "PROCESSIMAGINGDATA" -o ${LOGDIR} -e ${LOGDIR} -v ZDIM=$ZDIM,ATLAS='Schaefer',NPARC=200,SCAN=$SCAN,XCP=$XCP,LAB=$LAB,BD=$BASEDIR,MP=$MATPATH,RP=$RPATH -hold_jid "PROCESSDEMO" ProcessData22q.sh
 qsub -N "PROCESSIMAGINGDATA" -o ${LOGDIR} -e ${LOGDIR} -v ZDIM=$ZDIM,ATLAS='HarvardOxford',NPARC=112,SCAN=$SCAN,XCP=$XCP,LAB=$LAB,BD=$BASEDIR,MP=$MATPATH,RP=$RPATH -hold_jid "PROCESSDEMO" ProcessData22q.sh
 
 ###########################
@@ -62,9 +62,10 @@ qsub -N "FIR_CPCA" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -v D=$ROOT,BD=$BASEDIR,CD
 
 # fit linear mixed effects models to capture CPC responses
 qsub -N "LME_FIT" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -l h_vmem=2G,s_vmem=2G -v D=$ROOT,BD=$BASEDIR,CD=$COMP_DESIGN,RP=$RPATH -hold_jid "FIR_CPCA" lme_fit.sh
-
+ENDCOMMENT
 qsub -N "LME_PLOT" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -l h_vmem=2G,s_vmem=2G -v D=$ROOT,BD=$BASEDIR,CD=$COMP_DESIGN,RP=$RPATH -hold_jid "LME_FIT" lme_plot.sh
-
+qsub -N "FIR_COGNITION" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -l h_vmem=2G,s_vmem=2G -v D=$ROOT,BD=$BASEDIR,CD=$COMP_DESIGN,RP=$RPATH -hold_jid "FIR_CPCA" fir_pca_cognition.sh
+BEGINCOMMENT
 
 # bootstrap CPCA coefficients
 
@@ -77,5 +78,17 @@ done
 qsub -N "FIR_BOOTANALYZE" -o ${LOGDIR} -e ${LOGDIR} -l h_vmem=10.5G,s_vmem=10G -q $QUEUE -v D=$ROOT,BD=$BASEDIR,MP=$MATPATH,CD=$COMP_DESIGN -hold_jid "FIR_BOOTRUN_AllSubjects_*","FIR_CPCA" fir_bootanalyze.sh
 
 # test whether PNC and 22q coefficients separately will fit the other sample vs. group coefficients, in bootstrapped samples
-qsub -N "FIR_COEFF_COMPARE" -o ${LOGDIR} -e ${LOGDIR} -l h_vmem=10.5G,s_vmem=10G -q $QUEUE -v D=$ROOT,BD=$BASEDIR,MP=$MATPATH,CD=$COMP_DESIGN -hold_jid "FIR_CPCA" fir_coeff_compare.sh
 ENDCOMMENT
+qsub -N "FIR_COEFF_COMPARE" -o ${LOGDIR} -e ${LOGDIR} -l h_vmem=10.5G,s_vmem=10G -q $QUEUE -v D=$ROOT,BD=$BASEDIR,MP=$MATPATH,CD=$COMP_DESIGN,RP=$RPATH -hold_jid "FIR_CPCA" fir_coeff_compare.sh
+
+###################################################################################
+### Compare PC maps to structural difference maps and white matter connectivity ###
+###################################################################################
+
+# see if t1 maps from Sun et al. 2018 align better with components than spun versions of maps with preserved spatial covariance
+#qsub -N "MAKE_SPINS" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -v D=$ROOT,BD=$BASEDIR,MP=$MATPATHFAST -hold_jid "PROCESSIMAGINGDATA" make_spins.sh
+qsub -N "APPLY_SPINS" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -v D=$ROOT,BD=$BASEDIR,MP=$MATPATHFAST -hold_jid "MAKE_SPINS" apply_spins.sh
+qsub -N "SPIN_TEST" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -v D=$ROOT,BD=$BASEDIR,RP=$RPATH -hold_jid "APPLY_SPINS" spin_test.sh
+
+# white matter connectivity from this dataset
+qsub -N "SPIN_TEST" -o ${LOGDIR} -e ${LOGDIR} -q $QUEUE -v D=$ROOT,BD=$BASEDIR,RP=$RPATH -hold_jid "APPLY_SPINS" spin_test.sh

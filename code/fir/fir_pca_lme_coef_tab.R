@@ -3,9 +3,11 @@ rm(list=ls())
 args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
+component_design <- args[3]
 
-#name_root <- 'ScanIDSchaefer200Z1_22q_PreQC_XCP36pdespike_us_100reps'
-#basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/'
+name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 
@@ -45,6 +47,15 @@ signif.gated <- function(x,n=2){
   return(x)
 }
 PC <- 2
+
+if(grepl('xcp_36p_despike',name_root)){
+  PC.offset <- 0 
+} else if(grepl('xcp_6p_noFilter',name_root)){
+  PC.offset <- -1 # offset PC index because of global signal
+}
+
+keys <- list('Is22q','scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
+names(keys) <- c('22q Status','Age (months)','Sex (Female)','Total Brain Volume','Mean Head Motion','Handedness')
 for(PC in 1:ncomps){
   m <- results[[PC]]$mdl.best
   #m.4 <- lme4.ms(results[[PC]]$cfg.best,m$data)
@@ -57,7 +68,7 @@ for(PC in 1:ncomps){
   c.t.latex$LaTeX <- paste0('$\\beta = $ ',latexify(c.t.latex$Value),', $p = $ ',
                                 latexify(c.t.latex$`p.value`),', $df =$ ',latexify(c.t.latex$DF,sci=F))
   rownames(c.t.latex) <- rownames(c.t.fixed)
-  write.csv(c.t.latex,file = paste0(savedir,'LaTeXPC',PC,'.csv'))
+  write.csv(c.t.latex,file = paste0(savedir,'LaTeXPC',PC+PC.offset,'.csv'))
   #write.csv(c.t.fixed,file = paste0(savedir,'PC',PC,'FixedEffects.csv'),row.names = T)
   c.t.random <- intervals(m)$reStruct$scanid
   c.t.random <- c.t.random[grep('sd',rownames(c.t.random)),]
@@ -66,13 +77,19 @@ for(PC in 1:ncomps){
   #write.csv(c.t.random,file = paste0(savedir,'PC',PC,'RandomEffects.csv'),row.names = T)
   # rework the tables to join into one
   c.t.fixed <- unname(rbind(c('Coefficient Name',colnames(c.t.fixed)),cbind(rownames(c.t.fixed),c.t.fixed)))
+  # give variables nice names
+  for(e in names(keys)){c.t.fixed[which(c.t.fixed[,1]==keys[e]),1] <- e} # for covariates usign keys variable
+  c.t.fixed[,1] <- gsub('Time1','Time',c.t.fixed[,1])
+  c.t.fixed[,1] <- gsub('Time([0-9])','Time^\\1',c.t.fixed[,1])
   c.t.random <- as.matrix(c.t.random)
   c.t.random <- unname(rbind(c('Coefficient Name',colnames(c.t.random)),cbind(rownames(c.t.random),c.t.random)))
-  m.out <- rbind(c(paste0('PC',PC),'','Fixed Effects','','',''),c.t.fixed,
+  c.t.random[,1] <- gsub('Time1','Time',c.t.random[,1])
+  c.t.random[,1] <- gsub('Time([0-9])','Time^\\1',c.t.random[,1])
+  m.out <- rbind(c(paste0('PC',PC+PC.offset),'','Fixed Effects','','',''),c.t.fixed,
         rep('',ncol(c.t.fixed)),
         rep('',ncol(c.t.fixed)),
         c('','','Random Effects','','',''),
         cbind(c.t.random,'',''))
   colnames(m.out) <- rep('',ncol(m.out))
-  write.csv(m.out,file = paste0(savedir,'PC',PC,'FixedAndRandomEffects.csv'),row.names = F)
+  write.csv(m.out,file = paste0(savedir,'PC',PC+PC.offset,'FixedAndRandomEffects.csv'),row.names = F)
 }

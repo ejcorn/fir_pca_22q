@@ -6,7 +6,7 @@ basedir <- args[2]
 component_design <- args[3]
 
 basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
-name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+name_root <- 'CPCA_IDSchaefer200Z1xcp_36p_noFilter'
 #basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
 component_design <- 'ThreatNonthreatAllStimuliStratified'
 
@@ -32,13 +32,27 @@ fin <- 6
 TR <- 3
 covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
 t.names <- as.character(TR*1:fin)
-savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+load.dir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+savedir <- paste0(masterdir,'analyses/sc_pc/')
 dir.create(paste0(savedir,'lme_all_trials/'),recursive=T)
 stim.types <- list(threat='threat',nonthreat='nonthreat')
 response.types <- list(correct='correct',incorrect='incorrect')
 
 matData <- lapply(stim.types, function(S)
-  lapply(response.types, function(R) readMat(paste0(savedir,S,R,'FIRBetas_CPCScores.mat'))))
+  lapply(response.types, function(R) readMat(paste0(load.dir,S,R,'FIRBetas_CPCScores.mat'))))
+
+# load structure and compute structural metrics
+sc_data_name <- 'GFA_Pass'
+Amygdala <- 211:212 # index of amygdala
+matFile.SC <- readMat(paste0(basedir,'data/sc/StructuralConnectivity',sc_data_name,name_root,'.mat'))
+
+# difference in weighted degree
+
+SC <- matFile.SC$SC
+dti.missing <- matFile.SC$dti.missing
+ids <- matFile.SC$SC.IDs
+if(!identical(as.character(ids),as.character(demo$bblid))){print('ERROR: IDs do not match')}
+demo$AmygdalaStrength <- do.call(rbind,setNames(lapply(1:dim(SC)[3],function(N) mean(SC[Amygdala,,N])),ids))
 
 source('code/statfxns/lme_msfxns.R') # functions for mixed effects model selection
 results <- data.list <- list()
@@ -53,11 +67,11 @@ for(stim.type in stim.types){
     for(PC in 1:ncomps){
       PC.scores.j <- setNames(as.data.frame(PC.scores[,,PC]),t.names)
       PC.scores.j <- cbind(PC.scores.j,scanid=scanids.mat,Is22q=as.numeric(demo[as.character(scanids.mat),'study']=='22q'),stringsAsFactors=F)
-      PC.scores.j <- cbind(PC.scores.j,demo[as.character(scanids.mat),covariates])
-      PC.df <- collapse.columns(PC.scores.j,cnames = t.names,groupby = c('scanid','Is22q',covariates))
+      PC.scores.j <- cbind(PC.scores.j,demo[as.character(scanids.mat),c(covariates,'AmygdalaStrength')])
+      PC.df <- collapse.columns(PC.scores.j,cnames = t.names,groupby = c('scanid','Is22q',covariates,'AmygdalaStrength'))
       colnames(PC.df)[1:2] <- c('Score','Time')
       PC.df$Time <- as.numeric(PC.df$Time)
-    
+      
       for(td in 1:5){PC.df[,paste0('Time',td)] <- PC.df$Time^td}
       data.list[[stim.type]][[response.type]][[PC]] <- PC.df
     }
@@ -65,13 +79,14 @@ for(stim.type in stim.types){
 }
 
 iterator <- as.data.frame(t(expand.grid(stim=stim.types,resp=response.types)))
-PC <- 4
+PC <- 3
 for(PC in 1:ncomps){
   results.PC <- list()
   results.PC$PC <- paste0('PC',PC)
   # extract data on one PC at a time from all stimuli
   df.all <- do.call(rbind,lapply(iterator, function(X) data.frame(data.list[[X$stim]][[X$resp]][[PC]],
                                                                   Threat=as.numeric(X$stim=='threat'),Correct=as.numeric(X$resp == 'correct')))) # add binary indicators for correct and threat
+  df.all <- df.all[complete.cases(df.all),]
   #1. Base model, start with no time
   cfg.base <- list(fixed=c(covariates,'Is22q'),random='1',response='Score',id='scanid')
   #cfg.base <- list(fixed='1',random='1',response='Score',id='scanid')
@@ -105,11 +120,13 @@ for(PC in 1:ncomps){
       test.time.ran.cfg <- lapply(1:t.poly.max.sig, function(o.max) list(fixed=cfg.gold$fixed, random=c(cfg.gold$random,paste0('Time',1:o.max)),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
       list[mdl.gold,cfg.gold] <- lme.stepup(mdl.gold,test.time.ran.cfg)
       
-      # 5. now test additions of fixed effect interactions with Is22q and Time
+      # 5a. now test additions of fixed effect interactions with Is22q and Time
       test.time.by.22q.cfg <- lapply(1:t.poly.max.sig, function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Is22q*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
       list[mdl.gold,cfg.gold] <- lme.selectbest(mdl.gold,cfg.gold,test.time.by.22q.cfg)
-      # test.time.by.22q.cfg <- lapply(t.poly.max.sig:1, function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Is22q*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
-      # list[mdl.gold,cfg.gold] <- lme.stepdown(mdl.gold,test.time.by.22q.cfg)
+      
+      # 5b. now test additions of fixed effect interactions with Is22q and Amygdala strength
+      test.time.by.AMY.cfg <- lapply(1:t.poly.max.sig, function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Time',1:o.max,'*AmygdalaStrength')), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
+      list[mdl.gold,cfg.gold] <- lme.selectbest(mdl.gold,cfg.gold,test.time.by.AMY.cfg)
       
       # 6. now add four way interactions between 22q*time*correct*threat, using step-down approach
       # this monstrous term asks whether effects of 22q on time differ by correct responses/threat responses
@@ -126,49 +143,49 @@ for(PC in 1:ncomps){
       } 
     }
   }
-    # if(t.poly.max.sig == 1){ # if time is still linear then try to add in time again -- happens for PC 6
-    #   test.time.by.c.by.t.cfg <- lapply(t.poly.max:(as.numeric(t.poly.max.sig)+1), function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Correct*Threat*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
-    #   list[mdl.gold,cfg.gold] <- lme.stepdown(mdl.gold,test.time.by.c.by.t.cfg)
-    #   t.c.t.max.sig <- max(substr(cfg.gold$fixed[grepl('Correct\\*Threat\\*Time[0-9]',cfg.gold$fixed,perl = T)],20,20)) # only add 3-way interactions for times with no 2-way interactions
-    #   # add random effects back in if possible
-    #   test.time.ran.cfg <- lapply(1:t.c.t.max.sig, function(o.max) list(fixed=cfg.gold$fixed, random=c(cfg.gold$random,paste0('Time',1:o.max)),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
-    #   list[mdl.gold,cfg.gold] <- lme.stepup(mdl.gold,test.time.ran.cfg)
-    #   # now try to add in interaction with 22q
-    #   test.time.by.22q.by.c.by.t.cfg <- lapply(t.c.t.max.sig:1, function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Correct*Threat*Is22q*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
-    #   list[mdl.gold,cfg.gold] <- lme.stepdown(mdl.gold,test.time.by.22q.by.c.by.t.cfg)
-    # }
-    
-    #working.mdl <- lme(fixed=Score~Time,random=~1|scanid,data=df.all,na.action = na.exclude) # to test this tryCatch
-    ranef.test <- tryCatch(intervals(mdl.gold),error=function(err){return(FALSE)}) # check if data is singular with random effects after adding interactions
-    if(!is.list(ranef.test)){
-      while(!is.list(ranef.test)){ # delete last random effect and refit until random effect var-cov matrix can be computed
-        cfg.gold$random <- cfg.gold$random[-length(cfg.gold$random)] 
-        mdl.gold <- lme.ms(cfg.gold,df.all)
-        ranef.test <- tryCatch(intervals(mdl.gold),error=function(err){return(FALSE)})
-      }
+  # if(t.poly.max.sig == 1){ # if time is still linear then try to add in time again -- happens for PC 6
+  #   test.time.by.c.by.t.cfg <- lapply(t.poly.max:(as.numeric(t.poly.max.sig)+1), function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Correct*Threat*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
+  #   list[mdl.gold,cfg.gold] <- lme.stepdown(mdl.gold,test.time.by.c.by.t.cfg)
+  #   t.c.t.max.sig <- max(substr(cfg.gold$fixed[grepl('Correct\\*Threat\\*Time[0-9]',cfg.gold$fixed,perl = T)],20,20)) # only add 3-way interactions for times with no 2-way interactions
+  #   # add random effects back in if possible
+  #   test.time.ran.cfg <- lapply(1:t.c.t.max.sig, function(o.max) list(fixed=cfg.gold$fixed, random=c(cfg.gold$random,paste0('Time',1:o.max)),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
+  #   list[mdl.gold,cfg.gold] <- lme.stepup(mdl.gold,test.time.ran.cfg)
+  #   # now try to add in interaction with 22q
+  #   test.time.by.22q.by.c.by.t.cfg <- lapply(t.c.t.max.sig:1, function(o.max) list(fixed=c(cfg.gold$fixed,paste0('Correct*Threat*Is22q*Time',1:o.max)), random=c(cfg.gold$random),response=cfg.gold$response,id=cfg.gold$id)) # define sequential list of models to iterate through
+  #   list[mdl.gold,cfg.gold] <- lme.stepdown(mdl.gold,test.time.by.22q.by.c.by.t.cfg)
+  # }
+  
+  #working.mdl <- lme(fixed=Score~Time,random=~1|scanid,data=df.all,na.action = na.exclude) # to test this tryCatch
+  ranef.test <- tryCatch(intervals(mdl.gold),error=function(err){return(FALSE)}) # check if data is singular with random effects after adding interactions
+  if(!is.list(ranef.test)){
+    while(!is.list(ranef.test)){ # delete last random effect and refit until random effect var-cov matrix can be computed
+      cfg.gold$random <- cfg.gold$random[-length(cfg.gold$random)] 
+      mdl.gold <- lme.ms(cfg.gold,df.all)
+      ranef.test <- tryCatch(intervals(mdl.gold),error=function(err){return(FALSE)})
     }
-    results.PC$mdl.best.max.tsig <- t.poly.max.sig
-    print(paste0('PC',PC,', best model maximum time order: ',results.PC$mdl.best.max.tsig))
-    results.PC$mdl.best <- mdl.gold
-    results.PC$cfg.best <- cfg.gold
-    
-    # get predicted values from best model
-    results.PC$mdl.best$data$pred.best <- predict(results.PC$mdl.best)
-    
-    # get stats for interactions, i.e. group differences, from best model
-    results.PC$mdl.best.stats <- summary(results.PC$mdl.best)$tTable
-    # time-by-22q interactions
-    coef.names <- rownames(results.PC$mdl.best.stats)
-    find.ints <- grep('Is22q:Time*',coef.names)
-    results.PC$p.ints.22q <- results.PC$mdl.best.stats[find.ints,'p-value',drop=FALSE] # p-values for interactions
-    # time-by-correct/threat interactions, excluding 22q
-    find.ints <- which(grepl('Time[0-9]:',coef.names) & !grepl('Is22q',coef.names))
-    results.PC$p.ints.correct.threat <- results.PC$mdl.best.stats[find.ints,'p-value',drop=FALSE] # p-values for interactions
-    
-    results[[PC]] <- results.PC
+  }
+  results.PC$mdl.best.max.tsig <- t.poly.max.sig
+  print(paste0('PC',PC,', best model maximum time order: ',results.PC$mdl.best.max.tsig))
+  results.PC$mdl.best <- mdl.gold
+  results.PC$cfg.best <- cfg.gold
+  
+  # get predicted values from best model
+  results.PC$mdl.best$data$pred.best <- predict(results.PC$mdl.best)
+  
+  # get stats for interactions, i.e. group differences, from best model
+  results.PC$mdl.best.stats <- summary(results.PC$mdl.best)$tTable
+  # time-by-22q interactions
+  coef.names <- rownames(results.PC$mdl.best.stats)
+  find.ints <- grep('Is22q:Time*',coef.names)
+  results.PC$p.ints.22q <- results.PC$mdl.best.stats[find.ints,'p-value',drop=FALSE] # p-values for interactions
+  # time-by-correct/threat interactions, excluding 22q
+  find.ints <- which(grepl('Time[0-9]:',coef.names) & !grepl('Is22q',coef.names))
+  results.PC$p.ints.correct.threat <- results.PC$mdl.best.stats[find.ints,'p-value',drop=FALSE] # p-values for interactions
+  
+  results[[PC]] <- results.PC
 }
 
 sapply(results, function(X) X$p.ints.22q)
 sapply(results, function(X) X$mdl.best.stats[rownames(X$p.ints.correct.threat),])
 
-save(results, file = paste0(savedir,'lme_all_trials/',component_design,'_PCTimeCoursesLMEEffectsCorrectThreat.RData'))
+save(results, file = paste0(savedir,'lme_all_trials/',component_design,'_PCTimeCoursesLMEEffectsAmygdalaStrength',sc_data_name,'.RData'))

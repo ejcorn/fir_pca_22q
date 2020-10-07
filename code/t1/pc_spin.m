@@ -19,7 +19,7 @@ savedir_comp = fullfile(savedir_base,'pc_spin',component_design);
 mkdir(savedir_comp);
 %% load rotations of fsaverage5 surface
 subject = 'fsaverage5';
-addpath(genpath('/Applications/freesurfer/matlab'))
+
 % spin a bunch of times and save the rotation
 load(fullfile(savedir_base,['SpinTestRotations',subject,'.mat']),'rotateRight','rotateLeft');
 

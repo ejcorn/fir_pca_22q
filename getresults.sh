@@ -6,7 +6,7 @@ BASEDIR=/cbica/home/cornblae/ecornblath/fir_pca_22q/
 echo 'Enter root folder:'
 #read ROOT
 ROOT=CPCA_IDSchaefer200Z1xcp_36p_despike
-#ROOT=CPCA_IDSchaefer200Z1xcp_6p_noFilter
+ROOT=CPCA_IDSchaefer200Z1xcp_6p_noFilter
 
 mkdir -p results/$ROOT/
 #rsync -avzh cornblae@cbica-cluster.uphs.upenn.edu:/data/tesla-data/ecornblath/brain_states_22q/results/$ROOT/analyses/ results/$ROOT/

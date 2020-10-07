@@ -1,3 +1,4 @@
+cd(basedir); addpath(genpath('code'));
 addpaths;
 cd(basedir);
 load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
