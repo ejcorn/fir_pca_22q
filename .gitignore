@@ -14,9 +14,11 @@ main_all.sh
 code/spm12
 code/process/22qXCP
 code/brainopt-spectral-mapping*
+old_code
 data
 results
 misc
+notes
 # Session Data files
 .RData
 
