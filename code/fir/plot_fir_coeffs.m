@@ -16,21 +16,22 @@ atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
 extralab = extractAfter_(name_root,num2str(atlasScale));
 % load time series data from
 concTS_subcort = load(fullfile('data',sprintf(['ConcTimeSeriesCPCA_ID%s%d',extralab,'.mat'],atlasNameSubcortex,atlasScaleSubcortex)));
-%% concatenate brainnetome subcortex with schaefer subcortex
+%% concatenate harvard oxford subcortex with schaefer subcortex
 concTS = [concTS concTS_subcort.concTS(:,sc_indices)];
 cort_indices = 1:nparc; % indices for schaefer cortical parcels
 nparc_all = size(concTS,2);
 sc_indices_combined = (nparc+1):nparc_all; % location of subcortical nodes in concatenated matrix
 
+%%
 % specify component design, corresponding to which responses are modeled
-component_design = 'ThreatNonthreatAllStimuliStratified';
+%component_design = 'ThreatNonthreatAllStimuliStratified';
 savedir = fullfile(savedir_base,'cpc_timecourse',component_design,'pncvs22qcoeff');
 surfplot_base = fullfile('analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',[component_design],'pncvs22qcoeff');
 
 % plot both thresholded and unthresholded maps
-fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponents.mat'],['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat']};
-%fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponents.mat']};
-%fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat']};
+%fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponents.mat'],['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat']};
+fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponents.mat']};
+fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat']};
 
 for fname_surfplot = fnames_surfplot
 	fname_surfplot = char(fname_surfplot);

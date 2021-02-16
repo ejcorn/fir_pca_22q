@@ -9,3 +9,5 @@ NCTPath = '/cbica/home/cornblae/ecornblath/matlab/control_fc/NCT/';
 addpath(genpath(BCTPath));
 addpath(genpath(NCTPath));
 addpath(genpath(niftitoolbox_path1)); addpath(genpath(niftitoolbox_path2));
+
+a = clock; rng(a(6));

@@ -5,6 +5,7 @@
 cd(basedir);
 run('code/miscfxns/addpaths.m');
 cd(basedir);
+addpath(genpath('code'));
 load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
@@ -33,9 +34,24 @@ demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
 fin=6;
 TR = 3; nTR = allScanTRs(1);
 ncomps = 10;
+
+%% Implement null models here, if applicable
+[component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
+if strcmp(null_spec,'IPR')
+    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
+    rng(0); % just doing one rep so set seed to the same value here and in fir_pca_bootstrap_prep
+    concTS = IPR_BOLD_NULL(concTS,subjInd);
+    %subplot(1,2,2); imagesc(concTS(1:204,:));
+elseif strcmp(null_spec,'UPR')
+    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
+    concTS = UPR_BOLD_NULL(concTS,subjInd);
+    %subplot(1,2,2); imagesc(concTS(1:204,:));
+end
+
 %% split regressors into 22q half and PNC half
 % save with a generic name so the same script can bootstrap resample
-FIR_design = load(fullfile(savedir_base,'design_matrices',[component_design,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+
+FIR_design = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
 
 savedir = fullfile(savedir_base,'cpc_timecourse',[component_design],'pncvs22qcoeff');
 mkdir(savedir);

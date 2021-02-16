@@ -35,12 +35,14 @@ TR = 3; nTR = allScanTRs(1);
 ncomps=8;
 %% load bootstrapped components for specified component design
 % save with a generic name so the same script can bootstrap resample
-component_design = 'ThreatNonthreatAllStimuliStratified';
+%component_design = 'ThreatNonthreatAllStimuliStratified';
 savedir = fullfile(savedir_base,'cpc_timecourse',component_design,'pncvs22qcoeff');
 
+% reference coefficients; attempt to match order and sign of bootstrapped
+% coefficients to these, given arbitrary reordering
 OverallCoeffs = load(fullfile(savedir,['FIRGroup',component_design,'_CPCAComponents.mat']));
-ref_coeff = OverallCoeffs.nodeDataAll;
-dfun = @(x,y) corr(x,y).^2;
+ref_coeff = OverallCoeffs.nodeDataAll; 
+dfun = @(x,y) corr(x,y).^2; % use squared correlation because coefficient sign can arbitrarily flip
 
 d = dir([savedir,'/bootcoeff_AllSubjects/BootstrapPCA_Rep*.mat']);
 nreps = length(d);
@@ -53,10 +55,25 @@ for rep = 1:nreps
     X = load(fullfile(d(rep).folder, d(rep).name)); % load pca results from bootstrapped sample
     % first reorder coefficients based on shared variance, using a limited
     % subset that tend to get flipped
-    [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match1),ref_coeff(:,match1),1,dfun);
-    X.coeff(:,match1) = X.coeff(:,match1(shuff_idx));
-    [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match2),ref_coeff(:,match2),1,dfun);
-    X.coeff(:,match2) = X.coeff(:,match2(shuff_idx));
+    if CONTAINS(component_design,'IPR')
+        try
+            [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match1),ref_coeff(:,match1),1,dfun);
+            X.coeff(:,match1) = X.coeff(:,match1(shuff_idx));
+        catch
+            disp('error: couldnt match components')
+        end
+        try
+            [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match2),ref_coeff(:,match2),1,dfun);
+            X.coeff(:,match2) = X.coeff(:,match2(shuff_idx));
+        catch
+            disp('error: couldnt match components')
+        end
+    else
+        [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match1),ref_coeff(:,match1),1,dfun);
+        X.coeff(:,match1) = X.coeff(:,match1(shuff_idx));
+        [~,shuff_idx] = COLUMN_MATCH(X.coeff(:,match2),ref_coeff(:,match2),1,dfun);
+        X.coeff(:,match2) = X.coeff(:,match2(shuff_idx));
+    end
     
     coeff_sim(:,rep) = diag(corr(X.coeff(:,1:ncomps),ref_coeff)); % similarity in the current ordering     
     reflect = sign(coeff_sim(:,rep)); % .* abs(coeff_sim(:,rep))>0.95; % now reflect coefficients

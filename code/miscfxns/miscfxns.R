@@ -30,6 +30,29 @@ collapse.columns <- function(df,cnames=colnames(df),groupby=NULL){
   return(df.new)
 }
 
+name <- function(x,x.names){
+  # INPUTS:
+  # x: vector or dataframe
+  # x.names: names for elements or columns of x
+  # OUTPUTS:
+  # x with x.names as names
+  names(x) <- x.names
+  return(x)
+}
+
+paste0.combinations <- function(x,y){
+  # INPUTS:
+  # x: character vector
+  # y: character vector
+  #
+  # OUTPUTS:
+  # xy: every element of x pasted to every element of y, with x occuring first
+
+  xy <- as.vector(sapply(x, function(i) 
+    sapply(y, function(j) paste0(i,j))))
+  return(xy)
+}
+
 tp.vec2mat <- function(v){
   # INPUTS:
   # v: vectorized transition probabilities

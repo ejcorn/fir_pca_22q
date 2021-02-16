@@ -17,7 +17,7 @@ atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
 extralab = extractAfter_(name_root,num2str(atlasScale));
 % load time series data from
 concTS_subcort = load(fullfile('data',sprintf(['ConcTimeSeriesCPCA_ID%s%d',extralab,'.mat'],atlasNameSubcortex,atlasScaleSubcortex)));
-%% concatenate brainnetome subcortex with schaefer subcortex
+%% concatenate harvard oxford subcortex with schaefer subcortex
 concTS = [concTS concTS_subcort.concTS(:,sc_indices)];
 cort_indices = 1:nparc; % indices for schaefer cortical parcels
 nparc_all = size(concTS,2);
@@ -34,8 +34,25 @@ TR = 3; nTR = allScanTRs(1);
 ncomps = 8; % number of components to analyze
 resp_thresh = 2; % set minimum number of responses needed to be included in model
 %% specify what part of the task related variance you want to get your PCA loadings from
-%component_design = 'allcorrect';
-FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+
+[component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
+FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+
+%% Implement null models here, if applicable
+
+if strcmp(null_spec,'IPR')
+    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
+    rng(0); % just doing one rep so set seed to the same value here and in fir_pca_bootstrap_prep
+    concTS = IPR_BOLD_NULL(concTS,subjInd);
+    %subplot(1,2,2); imagesc(concTS(1:204,:));
+elseif strcmp(null_spec,'UPR')
+    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
+    concTS = UPR_BOLD_NULL(concTS,subjInd);
+    %subplot(1,2,2); imagesc(concTS(1:204,:));
+end
+%%
+%f= PLOT_DESIGN_MATRIX(FIR_Design_Reg1,2,subjInd);
+%% carry out three-step FIR regression, PCA, FIR regression
  % if using design matrix for initial PCA that contains all stimuli, use these component weights
 [coeff,scores,explained] = FIR_PCA(FIR_Design_Reg1.X,concTS); % use scores from input components
 % regress those scores back on the full design matrix used to extract
@@ -49,6 +66,9 @@ save(fullfile(savedir,'GroupCPCAComponentsExplained.mat'),'explained'); % save e
 mkdir(fullfile(savedir,'pncvs22qcoeff'));
 writetable(cell2table({['PCA performed on task related variance from ',component_design,', those scores regressed back onto various responses.']}),fullfile(savedir,'description.txt'))
 %% load correct-incorrect responses
+% loop through stimulus-response combinations and 
+% extract betas from regression matrix into a more workable format
+% for linear mixed effects modeling
 
 stim_types = {'threat','nonthreat'};
 for stim_type = stim_types
@@ -62,7 +82,7 @@ for stim_type = stim_types
         for tp = 1:fin
             % get beta for ith time point and all PCs for each subject, excluding intercept
             betaFIR_reshape(:,tp,:) = betaFIR_PCA_all(FIR_Design_Reg1.columnLabelsTime==tp & stim_response_mask,1:ncomps); % get betas in subjxcomponent matrix for given time point                  
-        end                 
+        end
         
         %% reflect coefficient axes (and scores) so that time courses are positive for threat correct
         % find the direction (positive or negative) of each score's time course 

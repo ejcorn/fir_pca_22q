@@ -1,4 +1,4 @@
-function newStr = extractAfter_(str,startStrPos)
+function newStr = extractBefore_(str,startStrPos)
 if( isnumeric(startStrPos) )
     if( startStrPos > numel(str) )
         error('Numeric position exceeds the number of characters.');
@@ -9,9 +9,9 @@ else
     s = strfind(str,startStrPos);
     if( isempty(s) )
         %error('Conversion from <missing> to character vector is not supported.');
-        newStr =[];
+        newStr = [];
     else
-        newStr = str(s(1)+numel(startStrPos):end);
+        newStr = str(1:s(1)-1);
     end
 end
 end
