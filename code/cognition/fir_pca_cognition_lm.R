@@ -25,10 +25,16 @@ source(paste0(basedir,'code/statfxns/statfxns.R'))
 
 # define keys for plot labels
 nice.x.name.key <- c(threatcorrect='Threat Correct',threatincorrect='Threat Incorrect',nonthreatcorrect='Non-Threat Correct',nonthreatincorrect='Non-Threat Incorrect')
-nice.y.name.key <- c(allcorrect='Emotion ID\nAccuracy (Rank)')
-nice.y.name.key.hist <- c(allcorrect = 'Emotion ID\nAccuracy (%)')
-for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q sample only and within the full sample and within controls only
+nice.y.name.key <- c(allcorrect='Emotion ID\nAccuracy (Rank)',overall_speed='Overall Speed')
+nice.y.name.key.hist <- c(allcorrect = 'Emotion ID\nAccuracy (%)',overall_speed='Overall Speed')
+
+subj.samples <- c('22q','AllSubjects','PNC')
+subj.samples <- c('22q','PNC')
+subj.sample <- '22q'
+for(subj.sample in subj.samples){ # do this both within 22q sample only and within the full sample and within controls only
   demo <- read.csv(paste(basedir,'data/Demographics',name_root,'.csv',sep=''),stringsAsFactors=F)
+  #cnb <- read.csv(paste0(basedir,'data/CNBMeds_',name_root,'.csv'),stringsAsFactors = F)
+  #demo <- merge(demo,cnb[,c('scanid','cnb')],by='scanid')
   rownames(demo) <- as.character(demo$scanid)
   covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness') # specify covariates
   demo2 <- read.csv('data/n85_22q_deleted_demo_dx_cnb.csv',stringsAsFactors=F)
@@ -38,8 +44,8 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
     # only study 22q subjects - want to explain variation within this phenotype
     demo <- demo[demo$study=='22q',]
     demo.cog <- merge(demo2,demo,by='bblid')
-    ind <- order(match(demo.cog$bblid,demo$bblid)) # need to do this b.c
-    demo.cog <- demo.cog[ind,]
+    # ind <- order(match(demo.cog$bblid,demo$bblid)) # not sure why this was in here - don't think it does anything
+    # demo.cog <- demo.cog[ind,]
     demo.cog <- cbind(demo.cog,idemo.performance[as.character(demo.cog$scanid),])
   } else if(subj.sample == 'AllSubjects'){
     demo.cog <- merge(demo,idemo.performance,by='scanid') # use this instead of the above 5 lines in order to use all subjects
@@ -53,8 +59,7 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
   grp.colors <- getGroupColors()
   
   # load FIR betas
-  savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
-  dir.create(paste0(savedir,'lme'),recursive=T)
+  savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')  
   
   stim.types <- list(threat=1,nonthreat=0)
   response.types <- list(correct=1,incorrect=0)
@@ -71,38 +76,58 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
   }
   
   cog.vars <- c('allcorrect')
-  mdls <- list(lm); names(mdls) <- cog.vars
+  if(subj.sample == '22q'){cog.vars <- c(cog.vars)}
+  
+  # Add executive function as covariate
+  if(subj.sample=='22q'){covariates <- c(covariates)} ####
   
   results.cog <- list() # store all of the R^2 values and p-values in one matrix and post-hoc correct then plot
+  # loop through independent variables: PC peak values during each stim-response pair
+  stim.type <- 'threat'; response.type <- 'incorrect'
   for(stim.type in names(stim.types)){
     for(response.type in names(response.types)){
       res.name <- paste0(stim.type,response.type) 
       stim.type.idx <- stim.types[[stim.type]]
       response.type.idx <- response.types[[response.type]]
+      stim.resp.key <- paste0(stim.type,response.type) # results list is indexed by combination of stimulus and response types
       # load each response type
       results.dnames <- list(paste0('PC',1:length(results)),cog.vars)
-      # make results matrix:
+      # make results matrix, initialize with NaNs
       res.mat <- matrix(NA,nrow = length(results),ncol=length(cog.vars),dimnames=results.dnames)
-      results.cog[[paste0(stim.type,response.type)]]$betas <- results.cog[[paste0(stim.type,response.type)]]$p.values <- res.mat
-      results.cog[[paste0(stim.type,response.type)]]$rsq <- results.cog[[paste0(stim.type,response.type)]]$f.p.values <- res.mat
-      results.cog[[paste0(stim.type,response.type)]]$df <- res.mat
+      results.cog[[stim.resp.key]]$betas <- results.cog[[stim.resp.key]]$p.values <- res.mat
+      results.cog[[stim.resp.key]]$rsq <- results.cog[[stim.resp.key]]$f.p.values <- res.mat
+      results.cog[[stim.resp.key]]$df <- res.mat
       
       # extract some kind of summary metric of each PC's time course
       #PC.summary <- lapply(results, function(X) as.data.frame(ranef(X$mdl.best))) # extract random effects
-      fun <- function(x) max(abs(x))
+      fun <- function(x) max(abs(x)) #mean(x[x<0]) #max(abs(x)) # specify function for quantifying PC time course
       df.list <- lapply(results, function(X) X$mdl.best$data[complete.cases(X$mdl.best$data) & X$mdl.best$data$Threat == stim.type.idx & X$mdl.best$data$Correct == response.type.idx,])
       PC.summary <- lapply(df.list, function(df) aggregate(df,by=list(scanid=df$scanid),fun)[,c('scanid','Score'),drop=F])
       PC.summary <- lapply(PC.summary, function(X) data.frame(X[setdiff(colnames(X),'scanid')],row.names=X$scanid))
+       
+      ### for testing ways of quantifying PC time courses  
+      # fun <- function(x) x[which.max(abs(x))] #mean(x[x>0]) # specify function for quantifying PC time course
+      # fun <- function(x) mean(x[x>0]) # specify function for quantifying PC time course
+      # df.list <- lapply(results, function(X) X$mdl.best$data[complete.cases(X$mdl.best$data) & X$mdl.best$data$Threat == stim.type.idx & X$mdl.best$data$Correct == response.type.idx,])
+      # PC.summary.wma <- lapply(df.list, function(df) aggregate(df,by=list(scanid=df$scanid),fun)[,c('scanid','Score'),drop=F])
+      # PC.summary.wma <- lapply(PC.summary.wma, function(X) data.frame(X[setdiff(colnames(X),'scanid')],row.names=X$scanid))
+      # 
+      # # min.sid <- 6968;3086; max.sid <- 6565 ;9826 # PC2
+      # min.sid <- 9826;8120; max.sid <- 8891
+      # X <- df.list[[4]]
+      # X[X$scanid==max.sid,]
+      # plot(PC.summary.wma[[4]]$Score,PC.summary[[4]]$Score)
+      ###
       
-      #compare random effects within 22q to social cognitive deficits
-      for(y in cog.vars){
-        # concatenate outcome variable, scores (predictor of interest), and specified covariates
+      for(y in cog.vars){ # loop through dependent variables (accuracy, etc. whatever is specified)
+        # concatenate outcome variable, scores (predictor of interest in outer 2 loops), and specified covariates
         df.PCs <- lapply(1:ncomps, function(PC) cbind(y=demo.cog[,y],PC.summary[[PC]][as.character(demo.cog$scanid),,drop=F],demo.cog[,covariates]))
         # exclude people with any NAs
         df.PCs <- lapply(df.PCs, function(X) X[complete.cases(X),])
         # exclude outlier wrt outcome variable
         #df.PCs <- lapply(df.PCs, function(X) X[!outlier.mask(X$y),])
         # plot distribution of outcome variable to justify using rank
+        # the ==0 makes sure this only happens once since outcome variable is always the same
         if(stim.type.idx == 0 & response.type.idx == 0){
           p <- ggplot() + geom_histogram(aes(x=df.PCs[[1]]$y)) + theme_bw() +
             xlab(nice.y.name.key.hist[[y]]) + ylab('Count') + theme(text=element_text(size=8))
@@ -118,27 +143,30 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
           ggsave(plot = p, filename = paste0(savedir,'HistogramRank',y,'.pdf'),
                  width = 3,height = 3, units = "cm",useDingbats=F)
         }
-        # fit one model using all variables
-        lm.PCs <- lapply(df.PCs,function(X) lm.beta(mdls[[y]](y~.,data=X)))
+        # fit one model using all variables for each PC
+        lm.PCs <- lapply(df.PCs,function(X) lm.beta(lm(y~.,data=X)))
         # first regress out covariates -- shouldn't be necessary to fit this on every PC, but rarely missingness can differ by PCs
-        # resid.PCs <- lapply(df.PCs,function(X) residuals(mdls[[y]](formula=reformulate(termlabels = covariates,response='y',intercept = T),data=X)))
+        # resid.PCs <- lapply(df.PCs,function(X) residuals(lm(formula=reformulate(termlabels = covariates,response='y',intercept = T),data=X)))
         # # now add residuals to df
         # df.PCs <- lapply(1:length(df.PCs), function(PC) cbind(df.PCs[[PC]],y.r=resid.PCs[[PC]]))
         # # remove covariates and original dependent
         # df.PCs <- lapply(df.PCs, function(X) X[,setdiff(colnames(X),c('y',covariates))])
         # # now fit a model to predict residuals from remaining variables (either score or random effects)
-        # lm.PCs <- lapply(df.PCs,function(X) lm.beta(mdls[[y]](y.r~.,data=X)))
+        # lm.PCs <- lapply(df.PCs,function(X) lm.beta(lm(y.r~.,data=X)))
         
+        # loop through models for each PC and extract coefficients, p-vals, etc. 
         coef.list <- lapply(lm.PCs,get.coef)
-        results.cog[[paste0(stim.type,response.type)]][[y]] <- list()
-        results.cog[[paste0(stim.type,response.type)]][[y]]$models <- lm.PCs
-        results.cog[[paste0(stim.type,response.type)]][[y]]$coef.tables <- coef.list
-        results.cog[[paste0(stim.type,response.type)]]$rsq[,y] <- sapply(lm.PCs,get.rsq)
-        results.cog[[paste0(stim.type,response.type)]]$f.p.values[,y] <- sapply(lm.PCs,get.ftest.pval)
-        results.cog[[paste0(stim.type,response.type)]]$betas[,y] <- sapply(coef.list,function(X) X['Score','Standardized'])
-        results.cog[[paste0(stim.type,response.type)]]$p.values[,y] <- sapply(coef.list,function(X) X['Score','Pr(>|t|)'])
-        results.cog[[paste0(stim.type,response.type)]]$df[,y] <- sapply(lm.PCs,function(X) summary(X)$df[2])
+        results.cog[[stim.resp.key]][[y]] <- list()
+        results.cog[[stim.resp.key]][[y]]$models <- lm.PCs
+        results.cog[[stim.resp.key]][[y]]$coef.tables <- coef.list
+        results.cog[[stim.resp.key]]$rsq[,y] <- sapply(lm.PCs,get.rsq)
+        results.cog[[stim.resp.key]]$f.p.values[,y] <- sapply(lm.PCs,get.ftest.pval)
+        results.cog[[stim.resp.key]]$betas[,y] <- sapply(coef.list,function(X) X['Score','Standardized'])
+        results.cog[[stim.resp.key]]$p.values[,y] <- sapply(coef.list,function(X) X['Score','Pr(>|t|)'])
+        results.cog[[stim.resp.key]]$df[,y] <- sapply(lm.PCs,function(X) summary(X)$df[2])
         #p.list <- lapply(lm.PCs, function(m) p.xy.flex(x=m$fitted.values,y=m$model$y,xlab = 'Fitted',ylab=y))
+        
+        # Plot partial residuals of each PC peak val/score alongside y
         p.list <- lapply(lm.PCs, function(m) p.xy.flex(x=get.partial.resids(m,'Score')$x,y=m$model$y,xlab = 'Score',ylab=y,col = '#c85795'))
         p.all <- plot_grid(plotlist = p.list,nrow=1,align='hv')
         ggsave(plot = p.all, filename = paste0(savedir,stim.type,response.type,'Score_Predict',y,'.pdf'),
@@ -149,6 +177,9 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
   }
   
 
+  # Load all of the results from each stim-response combo for each pc
+  # FDR correct over all of those tests
+  # plot as a matrix
   names(results.cog) <- nice.x.name.key[names(results.cog)]
   pval.list <- lapply(setNames(names(results.cog),names(results.cog)), function(X) list(p.values=results.cog[[X]]$p.values))
   pval.list <- list.posthoc.correct(pval.list,'fdr')
@@ -157,17 +188,26 @@ for(subj.sample in c('22q','AllSubjects','PNC')){ # do this both within 22q samp
   pval.list.1mat <- list.posthoc.correct(pval.list.1mat,'fdr')
   for(y in cog.vars){
     pvals <- pval.list.1mat[[y]]
+    # extract matrix of betas
     betas <- sapply(setNames(names(results.cog),names(results.cog)), function(X) results.cog[[X]]$betas[,y,drop=F])
+    # extract matrix of degrees of freedom
     df <- sapply(setNames(names(results.cog),names(results.cog)), function(X) results.cog[[X]]$df[,y,drop=F])
+    # name matrix rows
     rownames(betas) <- rownames(pvals) <- rownames(df) <- paste0('PC',1:ncomps)
     
+    # store those matrices in a list
     stat.list <- list(BetasStd=t(betas),Pfdr=t(pvals),df=t(df))
-    lapply(names(stat.list), function(s) write.csv(stat.list[[s]],paste0(savedir,s,'_',y,'.csv'))) # save stats
+    # save stats
+    lapply(names(stat.list), function(s) write.csv(stat.list[[s]],paste0(savedir,s,'_',y,'.csv')))
+    # plot beta matrix with overlayed p values
     p <- imagesc(X=t(betas),cmap='custom1_asymmetric',overlay = t(p.signif.matrix(pvals)),overlay.text.sz = 2,
                  overlay.text.col = 'white',ttl = nice.y.name.key[y],caxis_name = expression(beta)) + nice_cbar() + 
       theme(legend.key.height = unit(0.4,'cm'))
+    
     ggsave(plot = p, filename = paste0(savedir,'PeakScoreBetas_',y,'.pdf'),
            width = 9,height = 4.5, units = "cm",useDingbats=F)
+    
+    # plot strongest positive and strongest negative associations individually
     if(y =='allcorrect'){
       b.pos <- which(betas==max(betas),arr.ind=T)
       PC.pos <- b.pos[,'row']
