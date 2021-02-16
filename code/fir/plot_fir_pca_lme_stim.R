@@ -5,9 +5,9 @@ name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
 
-name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
-component_design <- 'ThreatNonthreatAllStimuliStratified'
+# name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+# component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 

@@ -5,9 +5,9 @@ name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
 
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
 component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
@@ -24,6 +24,7 @@ source(paste0(basedir,'code/statfxns/statfxns.R'))
 
 demo <- read.csv(paste(basedir,'data/Demographics',name_root,'.csv',sep=''),stringsAsFactors=F)
 rownames(demo) <- as.character(demo$scanid)
+
 grp.colors <- getGroupColors()
 
 # load FIR betas
