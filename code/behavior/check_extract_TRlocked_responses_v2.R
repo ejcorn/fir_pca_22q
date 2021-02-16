@@ -11,8 +11,8 @@ numClusters <- as.numeric(args[2])
 basedir <- args[3]
 
 name_root <- 'ScanIDSchaefer200Z1_22q_PreQC_XCP1normfcon_100reps'
-basedir <- '/data/tesla-data/ecornblath/brain_states_22q/'
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/'
+basedir <- '/data/tesla-data/ecornblath/fir_pca_22q/'
+basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 
 setwd(basedir)
 

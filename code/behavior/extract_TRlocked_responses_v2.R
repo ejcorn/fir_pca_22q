@@ -9,9 +9,9 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 
-#name_root <- 'ScanIDSchaefer200Z1_22q_PreQC_XCP36pdespike_us_100reps'
-# basedir <- '/data/tesla-data/ecornblath/brain_states_22q/'
-#basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/brain_states_22q/'
+# name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+# basedir <- '/data/tesla-data/ecornblath/fir_pca_22q/'
+# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 
 setwd(basedir)
 
@@ -133,7 +133,8 @@ incorrect.by.type <- load.corrected.responses.by.type(stimulus.types.scores,all.
 # aggregate performance on task -- start by initializing performance dataframe
 idemo.performance <- data.frame(scanid=demo$scanid,bblid=demo$bblid) 
 rownames(idemo.performance) <- as.character(idemo.performance$scanid)
-for(resp.type in c('correct','incorrect','nr')){
+resp.types <- c('correct','incorrect','nr')
+for(resp.type in resp.types){
   for(stim.type in c(stimulus.types.scores,'threat','nonthreat')){
     idemo.performance[,paste0(stim.type,resp.type)] <- NA
   }
@@ -240,7 +241,8 @@ stim.counts['threat'] <- sum(stim.counts[threat])
 stim.counts['nonthreat'] <- sum(stim.counts[nonthreat])
 
 for(stim.type in names(stim.counts)){
-  idemo.performance[,grepl(stim.type,colnames(idemo.performance))] <- idemo.performance[,grepl(stim.type,colnames(idemo.performance))] / stim.counts[stim.type]
+  col.select <- paste0.combinations(stim.type,resp.types) # get all responses for that stimulus type
+  idemo.performance[,col.select] <- idemo.performance[,col.select] / stim.counts[stim.type]
 }
 
 write.csv(x=idemo.performance,file = paste0(savedir,'IDEmoAccuracy.csv'))
