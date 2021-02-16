@@ -6,7 +6,7 @@ load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
 savedir_base = fullfile(masterdir,'schematics','fir_pca');
-savedir_fir = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_fir = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
 %% fit FIR + PCA model to generate TS, TS_task and TS_rest
@@ -20,11 +20,11 @@ allstim = load(fullfile('data/task/idemo/stimulus/all_3col.txt'));
 %regressor = [ones(nTRs,1) GET_FIR_REGRESSOR(allstim(:,1),6,TR,nTRs)];
 
 % load subject regressor
-FIR_Design_Reg1 = load(fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca','design_matrices',['ThreatNonthreatAllStimuliStratified_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+FIR_Design_Reg1 = load(fullfile(masterdir,'analyses','fir','design_matrices',['ThreatNonthreatAllStimuliStratified_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
 regressor = [ones(nTRs,1) FIR_Design_Reg1.X(subjInd == N,FIR_Design_Reg1.columnLabelsSubject==N)];
 TS = concTS(subjInd==N,:)
 %FIR_Design_Reg1 = load(fullfile(savedir_fir,'design_matrices',['AllStimulus_FIRDesignMatrix.mat']),'X');
-%[coeff,scores,explained,TS_reconstruct] = FIR_PCA(FIR_Design_Reg1.X,concTS); % use scores from input components
+%[coeff,scores,explained,TS_reconstruct] = FIR_PCA(FIR_Design_Reg1.X,concTS); FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat'% use scores from input components
 
 % fit FIR and PCA on single subject
 [coeff,scores,explained,X_task] = FIR_PCA(regressor,TS); % use scores from input components

@@ -6,6 +6,8 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
+fin <- 6
+st <- 1
 
 basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
@@ -43,7 +45,7 @@ rownames(demo.cog) <- demo.cog$scanid
 grp.colors <- getGroupColors()
 
 # load FIR betas
-savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
 stim.types <- list(threat=1,nonthreat=0)
 response.types <- list(correct=1,incorrect=0)
 

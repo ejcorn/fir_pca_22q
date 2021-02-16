@@ -9,7 +9,7 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir_base = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
 %% get indices of subcortical structures and load subcort BOLD from brainnetome
@@ -36,7 +36,7 @@ ncomps=8;
 %% load bootstrapped components for specified component design
 % save with a generic name so the same script can bootstrap resample
 %component_design = 'ThreatNonthreatAllStimuliStratified';
-savedir = fullfile(savedir_base,'cpc_timecourse',component_design,'pncvs22qcoeff');
+savedir = fullfile(savedir_base,['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],component_design,'pncvs22qcoeff');
 
 % reference coefficients; attempt to match order and sign of bootstrapped
 % coefficients to these, given arbitrary reordering
@@ -93,7 +93,7 @@ xlim([0.5 1]);
 prettifyEJC; 
 
 %%
-surfplot_base = fullfile('analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',[component_design],'pncvs22qcoeff');
+surfplot_base = fullfile('analyses','fir',['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],[component_design],'pncvs22qcoeff');
 nodeDataAll = OverallCoeffs.nodeDataAll .* (p < 0.05);
 nodeData = nodeDataAll(cort_indices,:);
 plotTitles = OverallCoeffs.plotTitles;

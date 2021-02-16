@@ -5,7 +5,7 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir_base = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
 %% get indices of subcortical structures and load subcort BOLD from harvard oxford
@@ -26,14 +26,14 @@ demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
 
 %% set parameters - length of FIR   
 
-fin=6;
+fin=6; st = 0;
 TR = 3; nTR = allScanTRs(1);
 ncomps = 8; % number of components to analyze
 resp_thresh = 2; % set minimum number of responses needed to be included in model
 %% specify what part of the task related variance you want to get your PCA loadings from
 
 [component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
-FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
 
 %% Implement null models here, if applicable
 rng(0); % just doing one rep so set seed to the same value here and in fir_pca_bootstrap_prep
@@ -83,7 +83,7 @@ title('Left Occipital Pole'); ylabel('BOLD (z)');
 xlabel('Time (s)');
 prettifyEJC
 f=FIGURE_SIZE_CM(f,21,3)
-savedir = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',component_design);
+savedir = fullfile(masterdir,'analyses','fir',['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],component_design);
 saveas(f,fullfile(savedir,'IPR_NULL_schematic.pdf'));
 %% confirm null destroys relationship between stimulus and signal
 % distribution of correlations between left v1 signal and convolved

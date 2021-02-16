@@ -4,6 +4,8 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
+fin <- 6
+st <- 1
 
 basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
@@ -15,7 +17,7 @@ setwd(basedir)
 source(paste0(basedir,'code/miscfxns/packages.R'))
 source(paste0(basedir,'code/miscfxns/miscfxns.R'))
 masterdir <- paste(basedir,'results/',name_root,'/',sep='')
-savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/pncvs22qcoeff/bootexplained/')
+savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/pncvs22qcoeff/bootexplained/')
 
 grpnames <- list(PNC='HCs',q22='22q',all='Group')
 df.list <- list()
@@ -51,7 +53,7 @@ p <- ggplot() + geom_col(data=df.medians,aes(x=PC,y=values,fill=names),position 
 ggsave(plot = p, filename = paste0(savedir,'VarianceExplainedBootstrappedSpecificity.pdf'),
        width = 9,height = 6, units = "cm",useDingbats=F)
 # make scree plot
-data.dir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+data.dir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
 explained.mat <- readMat(paste0(data.dir,'GroupCPCAComponentsExplained.mat'))$explained
 ncomps.scree <- 50 #length(explained.mat)
 p <- ggplot() + geom_line(aes(x=1:ncomps.scree,y=explained.mat[1:ncomps.scree])) + geom_vline(xintercept = 6,linetype ='dashed') +

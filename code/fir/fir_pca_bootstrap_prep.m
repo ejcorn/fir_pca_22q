@@ -10,7 +10,7 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir_base = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
 %% get indices of subcortical structures and load subcort BOLD from brainnetome
@@ -31,7 +31,7 @@ demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
 
 %% set parameters - length of FIR   
 
-fin=6;
+fin=6; st = 0; 
 TR = 3; nTR = allScanTRs(1);
 ncomps = 10;
 
@@ -51,9 +51,9 @@ end
 %% split regressors into 22q half and PNC half
 % save with a generic name so the same script can bootstrap resample
 
-FIR_design = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+FIR_design = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
 
-savedir = fullfile(savedir_base,'cpc_timecourse',[component_design],'pncvs22qcoeff');
+savedir = fullfile(savedir_base,['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],[component_design],'pncvs22qcoeff');
 mkdir(savedir);
 
 X_all = FIR_design.X; % make it so every time you save variables named concTS and X, even if whole sample or groups

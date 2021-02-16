@@ -7,7 +7,7 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir_base = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
 %% get indices of subcortical structures and load subcort BOLD from brainnetome
@@ -25,8 +25,8 @@ sc_indices_combined = (nparc+1):nparc_all; % location of subcortical nodes in co
 %%
 % specify component design, corresponding to which responses are modeled
 %component_design = 'ThreatNonthreatAllStimuliStratified';
-savedir = fullfile(savedir_base,'cpc_timecourse',component_design,'pncvs22qcoeff');
-surfplot_base = fullfile('analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',[component_design],'pncvs22qcoeff');
+savedir = fullfile(savedir_base,['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],component_design,'pncvs22qcoeff');
+surfplot_base = fullfile('analyses','fir',['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],[component_design],'pncvs22qcoeff');
 
 % plot both thresholded and unthresholded maps
 %fnames_surfplot = {['FIRGroup',component_design,'_CPCAComponents.mat'],['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat']};

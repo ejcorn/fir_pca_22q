@@ -4,6 +4,8 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
+fin <- 6
+st <- 1
 
 # basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 # name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
@@ -60,7 +62,7 @@ for(sc_data_name in c('QA_Pass','GFA_Pass','SIFT_radius2')){
   
   savedir <- paste0(masterdir,'analyses/sc_vs_pc/',component_design,'/')
   dir.create(savedir,recursive = T)
-  CPC <- readMat(paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',
+  CPC <- readMat(paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',
                         component_design,'/pncvs22qcoeff/FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat'))
   CPC.coeff <- CPC$nodeDataAll
   if(grepl('xcp_36p_despike',name_root)){

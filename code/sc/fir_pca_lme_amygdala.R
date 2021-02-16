@@ -4,6 +4,8 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
+fin <- 6
+st <- 1
 
 basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_36p_noFilter'
@@ -32,7 +34,7 @@ fin <- 6
 TR <- 3
 covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
 t.names <- as.character(TR*1:fin)
-load.dir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+load.dir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
 savedir <- paste0(masterdir,'analyses/sc_pc/')
 dir.create(paste0(savedir,'lme_all_trials/'),recursive=T)
 stim.types <- list(threat='threat',nonthreat='nonthreat')

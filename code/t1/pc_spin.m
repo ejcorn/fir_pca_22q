@@ -9,8 +9,8 @@ mkdir(savedir_base);
 %% load components
 
 component_design = 'ThreatNonthreatAllStimuliStratified';
-savedir_func = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca',...
-    'cpc_timecourse',component_design,'pncvs22qcoeff');
+savedir_func = fullfile(masterdir,'analyses','fir',...
+    ['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],component_design,'pncvs22qcoeff');
 fname_components = ['FIRGroup',component_design,'_CPCAComponentsBootstrappedThreshold.mat'];
 load(fullfile(savedir_func,fname_components),'nodeData','nodeDataAll','plotTitles','clim');
 

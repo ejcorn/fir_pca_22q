@@ -13,6 +13,8 @@ name_root = str(sys.argv[2])
 component_design = str(sys.argv[3])
 grp = str(sys.argv[4])
 rep = int(sys.argv[5])
+fin = 6
+st = 1
 
 print('got input variables')
 
@@ -31,7 +33,7 @@ print('set random seed/rep number to ' + str(seed))
 # load regressor and BOLD data
 os.chdir(basedir)
 masterdir = opj('results',name_root);
-savedir_base = opj(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',component_design,'pncvs22qcoeff')
+savedir_base = opj(masterdir,'analyses','fir','cpc_timecourse_fin'+str(fin)+'st'+str(st),component_design,'pncvs22qcoeff')
 savedir_out = opj(savedir_base,'bootcoeff_'+grp)
 os.system('mkdir -p ' + savedir_out)
 m_reg = sio.loadmat(opj(savedir_base,grp+'BOLD'+component_design+'Regressor.mat'))

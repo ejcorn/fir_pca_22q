@@ -4,6 +4,8 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
+fin <- 6
+st <- 1
 
 # name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
 # basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
@@ -26,10 +28,9 @@ grp.colors <- getGroupColors()
 
 # load FIR betas
 
-fin <- 6
 TR <- 3
 covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
-savedir <- paste0(masterdir,'analyses/fir/subject_fir_correct_incorrect_pca/cpc_timecourse/',component_design,'/')
+savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
 dir.create(paste0(savedir,'lme'),recursive=T)
 stim.types <- list(threat=1,nonthreat=0)
 response.types <- list(correct=1,incorrect=0)
