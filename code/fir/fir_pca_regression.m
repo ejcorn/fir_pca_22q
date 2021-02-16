@@ -8,35 +8,28 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir_base = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca');
+savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
+
 %% get indices of subcortical structures and load subcort BOLD from harvard oxford
 atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
-[nifti,sc_indices] = RETURN_NII_SUBCORT(atlasNameSubcortex,atlasScaleSubcortex);
-extralab = extractAfter_(name_root,num2str(atlasScale));
-% load time series data from
-concTS_subcort = load(fullfile('data',sprintf(['ConcTimeSeriesCPCA_ID%s%d',extralab,'.mat'],atlasNameSubcortex,atlasScaleSubcortex)));
-%% concatenate harvard oxford subcortex with schaefer subcortex
-concTS = [concTS concTS_subcort.concTS(:,sc_indices)];
-cort_indices = 1:nparc; % indices for schaefer cortical parcels
-nparc_all = size(concTS,2);
-sc_indices_combined = (nparc+1):nparc_all; % location of subcortical nodes in concatenated matrix
+[concTS,nparc_all,cort_indices,subcort_indices] = CONCAT_CORT_SUBCORT_BOLD(concTS,atlasNameSubcortex,atlasScaleSubcortex);
 
 %% sort out scanids 
-q22mask = ismember(subjInd_scanID{1},cellstr(num2str(demoMatch.scanid(strcmp(demoMatch.study,'22q')))));
-demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
+
+[q22mask,demoMatch.is22q] = PROCESS_SCANIDS(demoMatch,subjInd_scanID);
 
 %% set parameters - length of FIR   
 
-fin=6;
+fin=6; st = 0;
 TR = 3; nTR = allScanTRs(1);
 ncomps = 8; % number of components to analyze
 resp_thresh = 2; % set minimum number of responses needed to be included in model
 %% specify what part of the task related variance you want to get your PCA loadings from
 
 [component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
-FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
 
 %% Implement null models here, if applicable
 
@@ -60,7 +53,7 @@ end
 betaFIR_PCA_all = CPCA_SCORES_FIR_REGRESS(FIR_Design_Reg1.X,scores(:,1:ncomps)); 
 
 % make a separate folder for analysis of each PCA solution
-savedir = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca','cpc_timecourse',component_design);
+savedir = fullfile(masterdir,'analyses','fir',['cpc_timecourse_fin',num2str(fin),'st',num2str(st)],component_design);
 mkdir(savedir);
 save(fullfile(savedir,'GroupCPCAComponentsExplained.mat'),'explained'); % save explained to make scree plot in R
 mkdir(fullfile(savedir,'pncvs22qcoeff'));

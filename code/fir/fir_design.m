@@ -5,20 +5,23 @@ load(fullfile(basedir,['data/Demographics',name_root,'.mat']));
 load(fullfile('data',['TimeSeriesIndicators',name_root,'.mat']));
 load(fullfile('data',['ConcTimeSeries',name_root,'.mat']));
 masterdir = fullfile('results',name_root);
-savedir = fullfile(masterdir,'analyses','fir','subject_fir_correct_incorrect_pca','design_matrices');
+savedir = fullfile(masterdir,'analyses','fir','design_matrices');
 mkdir(savedir);
+
 %% sort out scanids 
-q22mask = ismember(subjInd_scanID{1},cellstr(num2str(demoMatch.scanid(strcmp(demoMatch.study,'22q')))));
-demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
+[q22mask,demoMatch.is22q] = PROCESS_SCANIDS(demoMatch,subjInd_scanID);
 
 %% set parameters - length of FIR   
 
-fin=6;
+fin = 6; st = 1;
 TR = 3; nTR = allScanTRs(1);
+% folder structure:
+% fir/$COMP_DESIGN/finXstY/
+% .mat for components. lme_all_trials. pncvs22qcoeff. predictcog.
 
 %% define task response components on all stimuli
 allstim = load(fullfile('data/task/idemo/stimulus/all_3col.txt'));
-regressor = GET_FIR_REGRESSOR(allstim(:,1),fin,TR,nTR);
+regressor = GET_FIR_REGRESSOR(allstim(:,1),fin,TR,nTR,st);
 
 X = zeros(size(concTS,1),fin*nobs); % make separate regressor for each subject
 for N = 1:nobs
@@ -27,7 +30,7 @@ for N = 1:nobs
     X(st_x:nd_x,st_y:nd_y) = regressor;
 end
 X = [ones(size(X,1),1) X];
-save(fullfile(savedir,['AllStimuli_FIRDesignMatrix_fin',num2str(fin),'.mat']),'X');
+save(fullfile(savedir,['AllStimuli_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']),'X');
 
 %% load correct-incorrect responses
 stim_types = {'all','threat','nonthreat'};
@@ -88,7 +91,7 @@ for stim_type = stim_types
         X = [ones(size(X,1),1) X];    % add intercept
         columnLabelsTime = [0 columnLabelsTime];
         columnLabelsSubject = [0 columnLabelsSubject];
-        save(fullfile(savedir,[stim_type,regressor_names{i_reg},'_FIRDesignMatrix_fin',num2str(fin),'.mat']),...
+        save(fullfile(savedir,[stim_type,regressor_names{i_reg},'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']),...
             'X','SubjectIsMissingOrExcluded','SubjectNumResponses','columnLabelsSubject','columnLabelsTime');
     end
 end
@@ -100,7 +103,7 @@ regs = {'correct','incorrect','nr'};
 all_reg_data = cell(length(stim_types),length(regs));
 for stim_type = 1:length(stim_types)
     for reg = 1:length(regs)
-        all_reg_data{stim_type,reg} = load(fullfile(savedir,[char(stim_types(stim_type)),char(regs(reg)),'_FIRDesignMatrix_fin',num2str(fin),'.mat']));
+        all_reg_data{stim_type,reg} = load(fullfile(savedir,[char(stim_types(stim_type)),char(regs(reg)),'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
         all_reg_data{stim_type,reg}.stim = char(stim_types(stim_type));
         all_reg_data{stim_type,reg}.reg = char(regs(reg));
     end
@@ -145,5 +148,5 @@ X(:,dup_mask_all) = NaN; % duplicate columns mean solitary stimuli with staggere
 %% add intercept and save
 
 X = [ones(size(X,1),1) X];
-save(fullfile(savedir,['ThreatNonthreatAllStimuliStratified_FIRDesignMatrix_fin',num2str(fin),'.mat']),...
+save(fullfile(savedir,['ThreatNonthreatAllStimuliStratified_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']),...
     'X','columnLabelsStim','columnLabelsSubject','columnLabelsTime','columnLabelsResp');

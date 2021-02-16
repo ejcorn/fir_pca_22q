@@ -1,15 +1,18 @@
-function regressor = GET_FIR_REGRESSOR(stimtiming,fin,TR,T)
+function regressor = GET_FIR_REGRESSOR(stimtiming,fin,TR,T,st)
 
 % INPUTS:
 % stimtiming: vector of stimulus onset times in seconds
 % fin: number of time points after stimulus to model in the finite impulse response
 % TR: scanning repetition time in seconds
 % T: number of time points in scan
+% st: number of time points after stimulus to start modeling
 %
 % OUTPUTS:
 % regressor: Txfin matrix of indicators for times relative to stimulus
 
-st = 1; % number of time points after stimulus to start modeling ... 1 in papers
+if ~exist('st','var')
+	st = 1; % number of time points after stimulus to start modeling ... 1 in papers
+end
 
 fir = eye(fin); % finite response is a binary indicator for each time point post-stimulus
 % finite response is a binary indicator for each time point post-stimulus, *start at t=1 after stimulus*
