@@ -138,22 +138,9 @@ end
 %% test whether matrix is rank deficient and correct
 
 [dup_mask_all] = FIR_REGRESSOR_RM_DUPS(X);
-%ismember(columnLabelsSubject(dup_mask_all),find(~SubjectMissingResponse)) % make sure duplicates are in the retained subjects
-%{
-design_str.X = X;
-design_str.columnLabelsStim = columnLabelsStim;
-design_str.columnLabelsSubject = columnLabelsSubject;
-design_str.columnLabelsTime = columnLabelsTime;
-design_str.columnLabelsResp = columnLabelsResp;
 
-[~,X_subj] = PLOT_DESIGN_MATRIX(design_str,108,subjInd);
-rank(X_subj(:,nanmask_y))
-imagesc(flipud(X_subj(:,nanmask_y)))
-%}
 X(:,dup_mask_all) = NaN; % duplicate columns mean solitary stimuli with staggered overlap that cannot be uniquely modeled 
-%
 
-%}
 %% add intercept and save
 
 X = [ones(size(X,1),1) X];
