@@ -5,11 +5,11 @@ name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
 fin <- 6
-st <- 1
+st <- 0
 
-# name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
-# component_design <- 'ThreatNonthreatAllStimuliStratified'
+name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 
@@ -31,7 +31,6 @@ grp.colors <- getGroupColors()
 TR <- 3
 covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
 savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
-dir.create(paste0(savedir,'lme'),recursive=T)
 stim.types <- list(threat=1,nonthreat=0)
 response.types <- list(correct=1,incorrect=0)
 
@@ -49,7 +48,7 @@ if(grepl('xcp_36p_despike',name_root)){
   results <- results[1:ncomps] 
 }
 
-t.axis <- seq(from=TR,to=TR*fin,by=TR) # labels for time on x-axis
+t.axis <- seq(from=(TR/2)+st*TR,length.out=fin,by=TR) # labels for time on x-axis: start based on st variable, going # of specified TRs based on fin variable
 all.p.ints.22q <- lapply(results, function(X) X$p.ints.22q)
 all.p.ints.time <- lapply(results, function(X) X$mdl.best.stats[rownames(X$p.ints.correct.threat),])
 p.labels <- lapply(all.p.ints.22q, function(X) paste0(paste0(rownames(X),': p = ',signif(X,2)),collapse='\n'))
@@ -76,7 +75,7 @@ for(response.type.name in names(response.types)){   # loop through response type
                            geom_line(data=X$grp.average.pred,aes(x=Time,y=Score,color=as.character(Is22q),linetype=as.character(Threat)),size=1)+
                            #ggtitle(X$PC)+ xlab('Time (s)') + ylab('Estimated HDR')+
                            ggtitle(NULL) + xlab(NULL) + ylab(NULL) + # easier to just add titles in illustrator
-                           scale_x_continuous(limits=c(TR,fin*TR),breaks=t.axis,labels = t.axis) +
+                           scale_x_continuous(limits=c(0,fin*TR),breaks=t.axis,labels = t.axis) +
                            scale_color_manual(values=unname(grp.colors),limits=c('0','1'),guide='none')+
                            scale_linetype_manual(guide='none',values=c('dashed','solid'),limits=c('0','1'))+ # make threat a solid line
                            theme_classic() + theme(plot.title = element_text(hjust=0.5),text=element_text(size=8),plot.margin = unit(c(0,0,0,0),'cm')))
@@ -88,7 +87,7 @@ for(response.type.name in names(response.types)){   # loop through response type
                           geom_line(data=X$grp.average.pred,aes(x=Time,y=Score.fixed,color=as.character(Is22q),linetype=as.character(Threat)),size=1)+
                           #ggtitle(paste0(X$PC))+xlab('Time (s)')+ylab('Fitted Value')+
                           ggtitle(NULL) + xlab(NULL) + ylab(NULL) + # easier to just add titles in illustrator
-                          scale_x_continuous(limits=c(TR,fin*TR),breaks=t.axis,labels = t.axis) +
+                          scale_x_continuous(limits=c(0,fin*TR),breaks=t.axis,labels = t.axis) +
                           scale_color_manual(values=grp.colors,limits=c('0','1'),guide='none')+
                           scale_linetype_manual(guide='none',values=c('dashed','solid'),limits=c('0','1'))+ # make threat a solid line
                           theme_classic() + theme(plot.title = element_text(hjust=0.5),text=element_text(size=8),plot.margin = unit(c(0,0,0,0),'cm')))

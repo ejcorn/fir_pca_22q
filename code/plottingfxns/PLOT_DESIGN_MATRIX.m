@@ -1,4 +1,4 @@
-function [f] = PLOT_DESIGN_MATRIX(design_str,subj,subjInd)
+function [f,X_subj] = PLOT_DESIGN_MATRIX(design_str,subj,subjInd)
 
 % INPUTS:
 % design_str: structure containing FIR design matrix, subject and stimulus labels
@@ -7,10 +7,18 @@ function [f] = PLOT_DESIGN_MATRIX(design_str,subj,subjInd)
 %
 % OUTPUTS:
 % f: figure handle to plot showing design matrix
+% X_subj: design matrix plotted
 
 m = 100; % increase height of time line
 b = 1000; % shift subject line 
 s = 40; % density of tick labels
+
+if (sum(design_str.X(:,1)) ~= size(design_str.X,1)) & (size(design_str.X,2) < length(design_str.columnLabelsSubject))
+    % add intercept if it's missing (accommodates use of this function
+    % around line 140 of code/fir/fir_design.m)
+    design_str.X = [ones(size(design_str.X,1),1) design_str.X];
+end
+
 if exist('subj','var')
 	subjInd_columns = [1 find(design_str.columnLabelsSubject==subj)]; % keep intercept too
 	design_str.X = design_str.X(subjInd==subj,subjInd_columns);
@@ -36,3 +44,5 @@ set(ax2, 'XLim', get(ax1, 'XLim'),'YLim',get(ax1,'YLim'));
 set(ax2,'XTick',xt,'XTickLabel',design_str.columnLabelsStim(sel),'XTickLabelRotation',90)
 hold on; plot(1:c,m*design_str.columnLabelsTime,'r');
 hold on; plot(1:c,b+(m/10)*design_str.columnLabelsSubject,'g')
+
+X_subj = design_str.X;

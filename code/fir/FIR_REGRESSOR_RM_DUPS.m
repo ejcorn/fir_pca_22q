@@ -32,11 +32,18 @@ function [dup_mask_all] = FIR_REGRESSOR_RM_DUPS(X)
             nanmask_y(X_dup_mask) = false; % add these duplicated columns to nanmask for y                
             dup_mask_all(X_dup_mask) = true;
         end
-        % check
+        % check whether X is still rank deficient after removing columns in
+        % X_dup_mask
         if rank(X(nanmask_x,nanmask_y)) == min(size(X(nanmask_x,nanmask_y)))
             disp('found duplicated columns of X which when removed will successfully correct rank deficiency')
         else
-            disp('ERROR: X is somehow still rank deficient')
+            disp('ERROR: X is still rank deficient')
+            % NOTE about this:
+            % rank deficiency occurs when one column is a linear combination of other columns
+            % in this context duplicates are the easy case of linear dependence to deal with
+            % linear dependence also occurs here when you have a column (e.g. time point 5 of correct threat with 2 responses)
+            % whose indicator positions can be completely recreated by adding together any number of the other regressors
+            % This most commonly occurs when you
             return
         end
     else

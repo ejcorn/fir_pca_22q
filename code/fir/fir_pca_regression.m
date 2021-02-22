@@ -14,7 +14,7 @@ concTS = THRESHOLD(concTS,zdim);
 
 %% get indices of subcortical structures and load subcort BOLD from harvard oxford
 atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
-[concTS,nparc_all,cort_indices,subcort_indices] = CONCAT_CORT_SUBCORT_BOLD(concTS,atlasNameSubcortex,atlasScaleSubcortex);
+[concTS,nparc_all,cort_indices,sc_indices_combined] = CONCAT_CORT_SUBCORT_BOLD(concTS,atlasNameSubcortex,atlasScaleSubcortex,atlasScale,name_root);
 
 %% sort out scanids 
 
@@ -22,7 +22,6 @@ atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
 
 %% set parameters - length of FIR   
 
-fin=6; st = 0;
 TR = 3; nTR = allScanTRs(1);
 ncomps = 8; % number of components to analyze
 resp_thresh = 2; % set minimum number of responses needed to be included in model

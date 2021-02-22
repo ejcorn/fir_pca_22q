@@ -7,7 +7,7 @@ name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
 fin <- 6
-st <- 1
+st <- 0
 
 basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
@@ -33,6 +33,8 @@ nice.y.name.key.hist <- c(allcorrect = 'Emotion ID\nAccuracy (%)',overall_speed=
 subj.samples <- c('22q','AllSubjects','PNC')
 subj.samples <- c('22q','PNC')
 subj.sample <- '22q'
+cog.vars <- c('allcorrect')
+overlap.hist <- lapply(cog.vars,function(X) list()) # make histograms of performance for 22q and PNC samples used in this analysis
 for(subj.sample in subj.samples){ # do this both within 22q sample only and within the full sample and within controls only
   demo <- read.csv(paste(basedir,'data/Demographics',name_root,'.csv',sep=''),stringsAsFactors=F)
   #cnb <- read.csv(paste0(basedir,'data/CNBMeds_',name_root,'.csv'),stringsAsFactors = F)
@@ -77,7 +79,6 @@ for(subj.sample in subj.samples){ # do this both within 22q sample only and with
     results <- results[2:6] # remove comp 1 which is global signal
   }
   
-  cog.vars <- c('allcorrect')
   if(subj.sample == '22q'){cog.vars <- c(cog.vars)}
   
   # Add executive function as covariate
@@ -131,6 +132,7 @@ for(subj.sample in subj.samples){ # do this both within 22q sample only and with
         # plot distribution of outcome variable to justify using rank
         # the ==0 makes sure this only happens once since outcome variable is always the same
         if(stim.type.idx == 0 & response.type.idx == 0){
+          overlap.hist[[y]][[subj.sample]] <- df.PCs[[1]]$y
           p <- ggplot() + geom_histogram(aes(x=df.PCs[[1]]$y)) + theme_bw() +
             xlab(nice.y.name.key.hist[[y]]) + ylab('Count') + theme(text=element_text(size=8))
           ggsave(plot = p, filename = paste0(savedir,'Histogram',y,'.pdf'),
@@ -233,3 +235,22 @@ for(subj.sample in subj.samples){ # do this both within 22q sample only and with
     }
   }
 }  
+
+### analyze betas and compare between PNC and 22q
+savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/predict_cog_22q/')  
+q22.betas <- read.csv(paste0(savedir,'22q/BetasStd_allcorrect.csv'))[,-1] # remove labels
+PNC.betas <- read.csv(paste0(savedir,'PNC/BetasStd_allcorrect.csv'))[,-1] # remove labels
+
+p <- p.xy.flex(x=unlist(PNC.betas),y=unlist(q22.betas),xlab='PNC Betas',ylab='22q Betas',
+               r.method='spearman',ttl = 'Relationship between PC Scores and Accuracy in 22q vs. PNC',
+              col = 'violet')
+ggsave(plot = p, filename = paste0(savedir,'PNCvs22qBetas_allcorrect.pdf'),
+       width = 4.4,height = 4.4, units = "cm",useDingbats=F)
+
+### compare distribution of accuracy between PNC and 22q samples
+cols <- name(getGroupColors(),c('PNC','22q'))
+p <- ggplot() + geom_histogram(aes(x=100*overlap.hist$allcorrect$PNC,fill = 'PNC',alpha=0.2)) +
+  geom_histogram(aes(x=100*overlap.hist$allcorrect$`22q`,fill='22q',alpha=0.2)) + scale_fill_manual(values=cols,name='') + scale_alpha(NULL) +
+  xlab('Emotion Identification Accuracy (%)') + ylab('Count') + theme_bw() + scale_y_continuous(expand=c(0,0)) + theme(text=element_text(size=8))
+ggsave(plot = p, filename = paste0(savedir,'PNCvs22qBetas_allcorrect.pdf'),
+       width = 4.4,height = 4.4, units = "cm",useDingbats=F)

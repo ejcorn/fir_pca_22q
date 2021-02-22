@@ -5,11 +5,11 @@ name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
 fin <- 6
-st <- 1
+st <- 0
 
-# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+ basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
 name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
 component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
@@ -33,7 +33,11 @@ grp.colors <- getGroupColors()
 ncomps <- 7
 TR <- 3
 covariates <- c('scanage_months','sex','BrainSegVol','idemo_meanrelrms','handedness')
-t.names <- as.character(TR*1:fin)
+# time axis defined by st, fin, and TR variables. st TRs after stimulus onset to fin TRs after stimulus onset.
+# the time axis numbers correspond to the values of time in the MIDDLE of the acquisition
+# e.g. stim onset at t = 0 s. acquire image from 0-3s. time index for that TR is 1.5s.
+
+t.names <- as.character(seq(from=(TR/2)+st*TR,length.out=fin,by=TR)) 
 savedir <- paste0(masterdir,'analyses/fir/cpc_timecourse_fin',fin,'st',st,'/',component_design,'/')
 dir.create(paste0(savedir,'lme_all_trials/'),recursive=T)
 stim.types <- list(threat='threat',nonthreat='nonthreat')

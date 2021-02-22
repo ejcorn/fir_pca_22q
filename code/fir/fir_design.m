@@ -13,11 +13,7 @@ mkdir(savedir);
 
 %% set parameters - length of FIR   
 
-fin = 6; st = 1;
 TR = 3; nTR = allScanTRs(1);
-% folder structure:
-% fir/$COMP_DESIGN/finXstY/
-% .mat for components. lme_all_trials. pncvs22qcoeff. predictcog.
 
 %% define task response components on all stimuli
 allstim = load(fullfile('data/task/idemo/stimulus/all_3col.txt'));
@@ -34,7 +30,7 @@ save(fullfile(savedir,['AllStimuli_FIRDesignMatrix_fin',num2str(fin),'st',num2st
 
 %% load correct-incorrect responses
 stim_types = {'all','threat','nonthreat'};
-%stim_types = {'all'};
+stim_types = {'threat','nonthreat'};
 for stim_type = stim_types
     stim_type = char(stim_type);
     disp(stim_type);
@@ -77,7 +73,7 @@ for stim_type = stim_types
                 X(:,st_y:nd_y) = NaN;
             else
                 if ~any(isnan(subj_regressor))
-                    X(st_x:nd_x,st_y:nd_y) = GET_FIR_REGRESSOR(subj_regressor,fin,TR,nTR);
+                    X(st_x:nd_x,st_y:nd_y) = GET_FIR_REGRESSOR(subj_regressor,fin,TR,nTR,st);
                     SubjectNumResponses(N) = length(subj_regressor);
                 else
                     % set entire regressor column to NaN
@@ -127,7 +123,7 @@ columnLabelsTime = [0,columnLabelsTime{:}];
 % missing response data has every time point modeled, which should be
 SubjectMissingResponse = cellfun(@(X) X.SubjectIsMissingOrExcluded,all_reg_data,'UniformOutput',false);
 SubjectMissingResponse = any(horzcat(SubjectMissingResponse{:}),2); 
-all_stim_regressor = GET_FIR_REGRESSOR(allstim(:,1),fin,TR,nTR);
+all_stim_regressor = GET_FIR_REGRESSOR(allstim(:,1),fin,TR,nTR,st);
 SubjectRegressorCount = zeros(nobs,1);
 for N = 1:nobs
     st_x = 1+nTR*(N-1); nd_x = nTR*N;  
@@ -143,8 +139,21 @@ end
 
 [dup_mask_all] = FIR_REGRESSOR_RM_DUPS(X);
 %ismember(columnLabelsSubject(dup_mask_all),find(~SubjectMissingResponse)) % make sure duplicates are in the retained subjects
+%{
+design_str.X = X;
+design_str.columnLabelsStim = columnLabelsStim;
+design_str.columnLabelsSubject = columnLabelsSubject;
+design_str.columnLabelsTime = columnLabelsTime;
+design_str.columnLabelsResp = columnLabelsResp;
 
+[~,X_subj] = PLOT_DESIGN_MATRIX(design_str,108,subjInd);
+rank(X_subj(:,nanmask_y))
+imagesc(flipud(X_subj(:,nanmask_y)))
+%}
 X(:,dup_mask_all) = NaN; % duplicate columns mean solitary stimuli with staggered overlap that cannot be uniquely modeled 
+%
+
+%}
 %% add intercept and save
 
 X = [ones(size(X,1),1) X];
