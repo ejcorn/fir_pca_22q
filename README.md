@@ -10,7 +10,7 @@ The script `main_fir.sh` will carry out the sequential execution of all necessar
 
 An HPC is only really necessary for the bootstrapping step to determine significance of the spatial principal component loading. A separate file, `local_main.m` will execute all of the other scripts on your local machine. 
 
-Basic workflow for scripts is as follows:
+Basic workflow for generating main text figures is as follows:
 
 **Figure 2:**
 
@@ -26,14 +26,24 @@ Scripts:
   - `code/fir/fir_pca_bootcoeff_analyze.m`: 
   - `code/fir/plot_fir_coeffs.m`: make surface plots of FIR PCA spatial components. This is done with the `code/visualize/brainvis_fir.py` script that calls the module `code/visualize/ejcbrain`, which is a wrapper for [pysurfer](https://pysurfer.github.io/). These scripts must be run locally, mostly because I could not get [`mayavi`](https://docs.enthought.com/mayavi/mayavi/) to run on the cluster.
 
-Functions:
-  -
+Key Functions:
+  - `GET_FIR_REGRESSOR`: create FIR regressor for 1 scan from 1 subject given number of time points, TR, vector of stimulus onsets in seconds
+  - `FIR_PCA`: perform initial FIR regression, then perform PCA on the predicted values of that regression, given BOLD data and design matrix
+  - `CPCA_SCORES_FIR_REGRESS`: regress PC scores back onto FIR design matrix, given PC scores and design matrix
 
 **Figure 3:**  
+
+Scripts:
   - `code/cognition/fir_pca_cognition_lm.R`: regress FIR betas (or summary metrics of them) onto task performance while adjusting for confounds
 
 **Figure 4:**
-  - `code/t1/make_spins.m`: this script is already run for fsaverage5, and I've included the data here.
+
+Spin test was performed using code from Dr. Aaron Alexander-Bloch's github repository [`spin-test`](https://github.com/spin-test/spin-test). Custom functions in the scripts below are wrappers on functions from the `spin-test` repository.
+
+Scripts:
+  - `code/t1/make_spins.m`: generates rotations and is already run for fsaverage5. I've included the data in the repository.
+  - `code/t1/t1_spin_pcs.m`: loads the rotations and applies them to difference maps from [Sun et al. 2018](https://www.nature.com/articles/s41380-018-0078-5) (thank you Dr. Sun for generously providing these maps!!)
+  - `code/t1/plot_t1_spins.R`: performs non-parametric testing to evaluate the alignment between structural difference and functional spatial PC maps.
 
 ## Requirements:
   - BOLD fMRI and T1 MRI data processed using [`fmriprep`](https://fmriprep.org/en/stable/) and [`xcpEngine`](https://xcpengine.readthedocs.io/)
@@ -63,7 +73,7 @@ Additionally, data dependencies are as follows (where `$NPARC` is the parcellati
       - `rest_data/Lausanne${NPARC}/${ID}_Lausanne${NPARC}_ts.1D`
       - `nback_data/Lausanne${NPARC}/${ID}_Lausanne${NPARC}_ts.1D`
   
-`ProcessData_22q.m` requires file paths to the emotion identification task fMRI data processed by `xcpEngine`. To demo this code without obtaining the necessary BOLD data, one could replace the variables "concTS" and "SCVolnorm" in this script with random numbers or your own BOLD data.
+`ProcessData_22q.m` requires file paths to the emotion identification task fMRI data processed by `xcpEngine`. To demo this code without obtaining the necessary BOLD data, one could replace the variables "concTS" in this script with random numbers or your own BOLD data.
 
 `code/miscfxns/addpaths.m` also requires specification of path to the BCT:
   - [Brain Connectivity Toolbox](https://sites.google.com/site/bctnet/)  
