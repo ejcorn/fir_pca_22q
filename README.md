@@ -82,14 +82,14 @@ Additionally, data dependencies are as follows (where `$NPARC` is the parcellati
 ## Input specification
 
 You have the option of specifying a few parameters in `main_fir.sh`:
-  -`XCP`: name of XCP output folder
-  -`ATLAS`: character name of desired atlas. Must move the nifti file defining your volumetric atlas into `data/nifti` and have XCP output folder matching that parcellation
-  -`NPARC`: parcellation scale, i.e. number of nodes in parcellation
-  -`SCAN`: character, doesn't matter what you put here. deprecated from original purpose.
-  -`LAB`: optional extra label
-  -`ST`: how many TRs after stimulus onset to include in your FIR design. 0 means start with the TR in which stimulus onsets, e.g. t= 0 to t = TR
-  -`FIN`: how many time points after `ST` to include, e.g. if `ST=0` then you model from t=0 to t=TR\*FIN
-  -`ZDIM`=1, only ever set this to 1. Ensures that each region's time series is z-scored within each subject.
+  - `XCP`: name of XCP output folder
+  - `ATLAS`: character name of desired atlas. Must move the nifti file defining your volumetric atlas into `data/nifti` and have XCP output folder matching that parcellation
+  - `NPARC`: parcellation scale, i.e. number of nodes in parcellation
+  - `SCAN`: character, doesn't matter what you put here. deprecated from original purpose.
+  - `LAB`: optional extra label
+  - `ST`: how many TRs after stimulus onset to include in your FIR design. 0 means start with the TR in which stimulus onsets, e.g. t= 0 to t = TR
+  - `FIN`: how many time points after `ST` to include, e.g. if `ST=0` then you model from t=0 to t=TR\*FIN
+  - `ZDIM`=1, only ever set this to 1. Ensures that each region's time series is z-scored within each subject.
 
 In my experience, the entire pipeline takes 3-24 hrs to run. I've never officially timed it, just set and forget :)
 
@@ -98,7 +98,6 @@ In my experience, the entire pipeline takes 3-24 hrs to run. I've never official
 Most of the main analysis scripts are meant to load output from upstream scripts. The following variables are passed into almost every MATLAB script:
 
  - `basedir`: home/working directory for the project see
- 
  - `name_root`: name of specific output folder for given set of parameters 
  - `st`: number of time points after stimulus to begin modeling BOLD response (0 in paper)
  - `fin`: number of time points after `st` to include in model (6 in paper)
