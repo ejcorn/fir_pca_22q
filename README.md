@@ -1,6 +1,6 @@
 # fir_pca_22q
  
-Code to reproduce all analysis in Cornblath et al. 2021 ("Altered functional brain dynamics in chromosome 22q11.2 deletion syndrome during facial affect processing").
+Code to reproduce all analysis in Cornblath et al. 2021 (["Altered functional brain dynamics in chromosome 22q11.2 deletion syndrome during facial affect processing"](https://www.biorxiv.org/content/10.1101/2020.12.17.423342v1)).
 
 ## General overview
 
