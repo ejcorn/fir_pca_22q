@@ -44,11 +44,22 @@ Scripts:
   - `code/t1/plot_t1_spins.R`: performs non-parametric testing to evaluate the alignment between structural difference and functional spatial PC maps.
 
 ## Requirements:
-  - BOLD fMRI and T1 MRI data processed using [`fmriprep`](https://fmriprep.org/en/stable/) and [`xcpEngine`](https://xcpengine.readthedocs.io/)
+
+Software:
   - MATLAB R2017A or later
+      - [Brain Connectivity Toolbox](https://sites.google.com/site/bctnet/)  
+      - [NIFTI toolbox](https://www.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image)
   - R 3.6.0 or later, with packages listed in `code/misc/packages.R`    
+  - python for bootstrapping and surface plots
   - Hardware: a computing cluster using Sun Grid Engine job scheduler, ability to request cores with at least 16G of RAM
   
+Data:
+  - BOLD fMRI and T1 MRI data processed using [`fmriprep`](https://fmriprep.org/en/stable/) and [`xcpEngine`](https://xcpengine.readthedocs.io/)
+  - timing of stimulus onsets and timing of subject responses
+  - subject demographics
+  - parcellation nifti files
+  - freesurfer surface files
+
 This software was tested on GNU Linux using the Center for Biomedical Image Computing & Analytics CUBIC computing cluster (https://www.med.upenn.edu/cbica/cubic.html).
 
 ## Directory structure and path specification
@@ -62,20 +73,14 @@ Scripts are organized by their purpose in the code folder. The jobs folder conta
   - `RPATH`: the path to the user's Rscript function e.g. Rscript
   - `PYPATH`: the path to user's python binary
   - `LOGDIR`: directory for output files
-
-Additionally, data dependencies are as follows (where `$NPARC` is the parcellation scale and `$ID` is a subject ID):
-  - `datadir_main`: at the top of processDataBaumSample.m, specifies the path to processed data. Within this directory there should be:
-      - `subject_demographics/*.csv` with csv file of demographics, containing scanids and bblids
-      - `diffusion_data/volNormSC/Lausannne${NPARC}/${ID}_volNormStreamline_LausanneScale${NPARC}.mat`
-      - `diffusion_data/FA/Lausanne${NPARC}/${ID}_FA_LausanneScale${NPARC}.mat`
-      - `rest_data/Lausanne${NPARC}/${ID}_Lausanne${NPARC}_ts.1D`
-      - `nback_data/Lausanne${NPARC}/${ID}_Lausanne${NPARC}_ts.1D`
   
-`ProcessData_22q.m` requires file paths to the emotion identification task fMRI data processed by `xcpEngine`. To demo this code without obtaining the necessary BOLD data, one could replace the variables "concTS" in this script with random numbers or your own BOLD data.
+`ProcessData_22q.m` requires additional file paths to be specified:
+  - the emotion identification task fMRI data processed by `xcpEngine`, which are specified in lines 52-72
+  - demographics file containing freesurfer BrainSegVol for each subject, age, sex, head motion, handedness, etc. 
 
-`code/miscfxns/addpaths.m` also requires specification of path to the BCT:
-  - [Brain Connectivity Toolbox](https://sites.google.com/site/bctnet/)  
-  - [NIFTI toolbox](https://www.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image)
+To demo this code with your BOLD data or just run it generally, one could replace the variables "concTS" in this script with random numbers or your own BOLD data.
+
+`code/miscfxns/addpaths.m` also requires specification of path to the BCT and NIFTI toolbox
 
 ## Input specification
 
