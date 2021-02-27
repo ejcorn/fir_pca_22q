@@ -97,12 +97,12 @@ In my experience, the entire pipeline takes 3-24 hrs to run. I've never official
 
 Most of the main analysis scripts are meant to load output from upstream scripts. The following variables are passed into almost every MATLAB script:
 
- -`basedir`: home/working directory for the project see
+ - `basedir`: home/working directory for the project see
  
- -`name_root`: name of specific output folder for given set of parameters 
- -`st`: number of time points after stimulus to begin modeling BOLD response (0 in paper)
- -`fin`: number of time points after `st` to include in model (6 in paper)
- -`component_design`: specification of design matrix (always "ThreatNonthreatAllStimuliStratified" then may have "\_" followed by additional string specifying a null model to use)
+ - `name_root`: name of specific output folder for given set of parameters 
+ - `st`: number of time points after stimulus to begin modeling BOLD response (0 in paper)
+ - `fin`: number of time points after `st` to include in model (6 in paper)
+ - `component_design`: specification of design matrix (always "ThreatNonthreatAllStimuliStratified" then may have "\_" followed by additional string specifying a null model to use)
 
 You can access these variables by executing the script `code/miscfxns/STARTUP.m`. If you run this script first, then you can run any other MATLAB script in isolation. Similarly `code/miscfxns/startup_local.R` loads these variables into R.
 
