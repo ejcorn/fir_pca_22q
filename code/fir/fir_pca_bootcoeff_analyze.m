@@ -12,25 +12,16 @@ masterdir = fullfile('results',name_root);
 savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
-%% get indices of subcortical structures and load subcort BOLD from brainnetome
+
+%% get indices of subcortical structures and load subcort BOLD from harvard oxford
 atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
-[nifti,sc_indices] = RETURN_NII_SUBCORT(atlasNameSubcortex,atlasScaleSubcortex);
-extralab = extractAfter_(name_root,num2str(atlasScale));
-% load time series data from
-concTS_subcort = load(fullfile('data',sprintf(['ConcTimeSeriesCPCA_ID%s%d',extralab,'.mat'],atlasNameSubcortex,atlasScaleSubcortex)));
-%% concatenate brainnetome subcortex with schaefer subcortex
-concTS = [concTS concTS_subcort.concTS(:,sc_indices)];
-cort_indices = 1:nparc; % indices for schaefer cortical parcels
-nparc_all = size(concTS,2);
-sc_indices_combined = (nparc+1):nparc_all; % location of subcortical nodes in concatenated matrix
+[concTS,nparc_all,cort_indices,sc_indices_combined] = CONCAT_CORT_SUBCORT_BOLD(concTS,atlasNameSubcortex,atlasScaleSubcortex,atlasScale,name_root);
 
 %% sort out scanids 
-q22mask = ismember(subjInd_scanID{1},cellstr(num2str(demoMatch.scanid(strcmp(demoMatch.study,'22q')))));
-demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
+[q22mask,demoMatch.is22q] = PROCESS_SCANIDS(demoMatch,subjInd_scanID);
 
 %% set parameters - length of FIR   
 
-fin=6;
 TR = 3; nTR = allScanTRs(1);
 ncomps=8;
 %% load bootstrapped components for specified component design

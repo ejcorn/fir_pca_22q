@@ -4,13 +4,16 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
-fin <- 6
-st <- 1
+fin <- args[4]
+st <- args[5]
 
-basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
-name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
-component_design <- 'ThreatNonthreatAllStimuliStratified'
+# fin <- 6
+# st <- 1
+
+# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+# name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+# #basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+# component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 
@@ -58,7 +61,7 @@ t1.maps.perm <- list(CT=lapply(1:dim(matData$ct.data.perm)[2],function(y) matDat
 dfun <- function(PCs,t1){return(sapply(1:ncol(PCs), function(PC) mean(abs(t1)[PCs[,PC]!=0],na.rm=T))) }
 
 results <- list()
-metric.long.names <- list(CT='Cortical Thickness',SA='Surface Area')
+metric.long.names <- list(CT='|Cortical Thickness\nDifference',SA='Surface Area\nDifference')
 for(t1.metric in names(t1.maps)){
   t1.map.j <- t1.maps[[t1.metric]] # iterate through t1 maps
   t1.maps.perm.j <- t1.maps.perm[[t1.metric]]
@@ -82,7 +85,7 @@ p.list <- lapply(results, function(X) ggplot() + geom_boxplot(data=collapse.colu
            annotate(geom='text',x=names(X$d.obs),y=max(X$d.null),label=ifelse(X$p.spin.fdr<0.05,yes='*',no=''),size=4,color="#F2300F")+
            #annotate(geom='text',x=names(X$d.obs),y=max(X$d.null),vjust=1,label=ifelse(X$p.spin<0.05,yes='*',no=''),size=4,color="#35274A")+
            theme_classic()+ggtitle(X$metric)+theme(plot.title = element_text(hjust=0.5))+
-           xlab('') + ylab(paste0(X$name,' (MAV)')) + theme(text=element_text(size=8),
+           xlab('') + ylab(paste0(X$name,'\n(Mean Absolute Value)')) + theme(text=element_text(size=8),
           axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)))
 p.all <- plot_grid(plotlist=p.list,nrow=1)
 ggsave(plot = p.all, filename = paste0(savedir,'PC_CTSA_MAV.pdf'),

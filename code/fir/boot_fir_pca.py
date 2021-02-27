@@ -13,8 +13,8 @@ name_root = str(sys.argv[2])
 component_design = str(sys.argv[3])
 grp = str(sys.argv[4])
 rep = int(sys.argv[5])
-fin = 6
-st = 1
+fin = int(sys.argv[6])
+st = int(sys.argv[7])
 
 print('got input variables')
 
@@ -24,6 +24,8 @@ print('got input variables')
 # component_design = 'ThreatNonthreatAllStimuliStratified'
 # grp = 'AllSubjects'
 # rep = 1
+# fin = 6
+# st = 0
 # os.environ['SGE_TASK_ID'] = '1'
 
 seed = (rep-1)*100 + int(os.environ['SGE_TASK_ID']) # part of array job

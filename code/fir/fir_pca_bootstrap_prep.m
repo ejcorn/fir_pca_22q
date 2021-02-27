@@ -13,40 +13,25 @@ masterdir = fullfile('results',name_root);
 savedir_base = fullfile(masterdir,'analyses','fir');
 mkdir(savedir_base);
 concTS = THRESHOLD(concTS,zdim);
-%% get indices of subcortical structures and load subcort BOLD from brainnetome
+
+%% get indices of subcortical structures and load subcort BOLD from harvard oxford
 atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
-[nifti,sc_indices] = RETURN_NII_SUBCORT(atlasNameSubcortex,atlasScaleSubcortex);
-extralab = extractAfter_(name_root,num2str(atlasScale));
-% load time series data from
-concTS_subcort = load(fullfile('data',sprintf(['ConcTimeSeriesCPCA_ID%s%d',extralab,'.mat'],atlasNameSubcortex,atlasScaleSubcortex)));
-%% concatenate brainnetome subcortex with schaefer subcortex
-concTS = [concTS concTS_subcort.concTS(:,sc_indices)];
-cort_indices = 1:nparc; % indices for schaefer cortical parcels
-nparc_all = size(concTS,2);
-sc_indices_combined = (nparc+1):nparc_all; % location of subcortical nodes in concatenated matrix
+[concTS,nparc_all,cort_indices,sc_indices_combined] = CONCAT_CORT_SUBCORT_BOLD(concTS,atlasNameSubcortex,atlasScaleSubcortex,atlasScale,name_root);
 
 %% sort out scanids 
-q22mask = ismember(subjInd_scanID{1},cellstr(num2str(demoMatch.scanid(strcmp(demoMatch.study,'22q')))));
-demoMatch.is22q = double(strcmp(demoMatch.study, '22q'));
+[q22mask,demoMatch.is22q] = PROCESS_SCANIDS(demoMatch,subjInd_scanID);
 
 %% set parameters - length of FIR   
 
-fin=6; st = 0; 
 TR = 3; nTR = allScanTRs(1);
-ncomps = 10;
+ncomps = 10; % save more components to give some wiggle room for matching components in case amount of variance 
+% explained is variable, e.g. PC6 of one sample is PC8 of another sample because PC6-8 all explain similar amount of variance
 
-%% Implement null models here, if applicable
+%% Load design matrix and implement null models here, if applicable
+
 [component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
-if strcmp(null_spec,'IPR')
-    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
-    rng(0); % just doing one rep so set seed to the same value here and in fir_pca_bootstrap_prep
-    concTS = IPR_BOLD_NULL(concTS,subjInd);
-    %subplot(1,2,2); imagesc(concTS(1:204,:));
-elseif strcmp(null_spec,'UPR')
-    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
-    concTS = UPR_BOLD_NULL(concTS,subjInd);
-    %subplot(1,2,2); imagesc(concTS(1:204,:));
-end
+FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
+[concTS,FIR_Design_Reg1] = NULL_IMPLEMENT(null_spec,concTS,subjInd,FIR_Design_Reg1,name_root); % see functions for descriptions of null models
 
 %% split regressors into 22q half and PNC half
 % save with a generic name so the same script can bootstrap resample

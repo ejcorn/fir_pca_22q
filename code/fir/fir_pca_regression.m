@@ -25,23 +25,13 @@ atlasNameSubcortex = 'HarvardOxford'; atlasScaleSubcortex = 112;
 TR = 3; nTR = allScanTRs(1);
 ncomps = 8; % number of components to analyze
 resp_thresh = 2; % set minimum number of responses needed to be included in model
-%% specify what part of the task related variance you want to get your PCA loadings from
+
+%% Load design matrix and implement null models here, if applicable
 
 [component_design_load,null_spec] = NULL_SPEC(component_design); % strip away null specification
 FIR_Design_Reg1 = load(fullfile(savedir_base,'design_matrices',[component_design_load,'_FIRDesignMatrix_fin',num2str(fin),'st',num2str(st),'.mat']));
+[concTS,FIR_Design_Reg1] = NULL_IMPLEMENT(null_spec,concTS,subjInd,FIR_Design_Reg1,name_root); % see functions for descriptions of null models
 
-%% Implement null models here, if applicable
-
-if strcmp(null_spec,'IPR')
-    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
-    rng(0); % just doing one rep so set seed to the same value here and in fir_pca_bootstrap_prep
-    concTS = IPR_BOLD_NULL(concTS,subjInd);
-    %subplot(1,2,2); imagesc(concTS(1:204,:));
-elseif strcmp(null_spec,'UPR')
-    %f=figure; subplot(1,2,1); imagesc(concTS(1:204,:));
-    concTS = UPR_BOLD_NULL(concTS,subjInd);
-    %subplot(1,2,2); imagesc(concTS(1:204,:));
-end
 %%
 %f= PLOT_DESIGN_MATRIX(FIR_Design_Reg1,2,subjInd);
 %% carry out three-step FIR regression, PCA, FIR regression

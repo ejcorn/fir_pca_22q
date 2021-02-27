@@ -43,7 +43,8 @@ function [dup_mask_all] = FIR_REGRESSOR_RM_DUPS(X)
             % in this context duplicates are the easy case of linear dependence to deal with
             % linear dependence also occurs here when you have a column (e.g. time point 5 of correct threat with 2 responses)
             % whose indicator positions can be completely recreated by adding together any number of the other regressors
-            % This most commonly occurs when you
+            % I observed this happening at fin 7 st 0 when there were two task events with only one trial
+            % and then another task event with 2 trials, such that the 2 trial one overlapped with the other two single trial events
             return
         end
     else

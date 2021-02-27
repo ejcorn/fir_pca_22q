@@ -4,13 +4,17 @@ args <- commandArgs(TRUE)
 name_root <- args[1]
 basedir <- args[2]
 component_design <- args[3]
-fin <- 6
-st <- 0
+fin <- as.numeric(args[4])
+st <- as.numeric(args[5])
 
- basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
-name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
-#basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
-component_design <- 'ThreatNonthreatAllStimuliStratified'
+#source('code/miscfxns/startup_local.R')
+# fin <- 6
+# st <- 0
+
+# basedir <- '~/Dropbox/Cornblath_Bassett_Projects/BrainStates22q/fir_pca_22q/'
+# name_root <- 'CPCA_IDSchaefer200Z1xcp_6p_noFilter'
+# #basedir <- '/cbica/home/cornblae/ecornblath/fir_pca_22q/'
+# component_design <- 'ThreatNonthreatAllStimuliStratified'
 
 setwd(basedir)
 
