@@ -4,8 +4,6 @@ Code to reproduce all analysis in Cornblath et al. 2021 (["Altered functional br
 
 ## General overview
 
-I have included a basic example of how to apply the CPCA method to fMRI data across subjects in `example.m` in the main folder. This may provide an easier starting point. There is also a publicly available tool box for CPCA.
-
 The script `main_fir.sh` will carry out the sequential execution of all necessary scripts by submitting serially dependent jobs to the Sun Grid Engine job scheduler. 
 
 An HPC is only really necessary for the bootstrapping step to determine significance of the spatial principal component loading. A separate file, `local_main.m` will execute all of the other scripts on your local machine. 
